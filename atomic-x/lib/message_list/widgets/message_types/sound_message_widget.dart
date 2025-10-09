@@ -1,0 +1,289 @@
+import 'dart:io';
+
+import 'package:atomic_x/base_component/base_component.dart';
+import 'package:atomic_x_core/atomicxcore.dart';
+import 'package:flutter/material.dart';
+
+import '../../../audio_player/audio_player.dart';
+import '../message_status_mixin.dart';
+
+class SoundMessageWidget extends StatefulWidget {
+  final MessageInfo message;
+  final bool isSelf;
+  final double maxWidth;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final MessageListStore? messageListStore;
+  final GlobalKey? bubbleKey;
+
+  const SoundMessageWidget({
+    super.key,
+    required this.message,
+    required this.isSelf,
+    required this.maxWidth,
+    this.onTap,
+    this.onLongPress,
+    this.messageListStore,
+    this.bubbleKey,
+  });
+
+  @override
+  State<SoundMessageWidget> createState() => _SoundMessageWidgetState();
+}
+
+class _SoundMessageWidgetState extends State<SoundMessageWidget> with MessageStatusMixin {
+  bool _isPlaying = false;
+  bool _isDownloading = false;
+
+  Duration _currentPosition = Duration.zero;
+
+  late AudioPlayer _audioPlayer;
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer.createInstance();
+    _audioPlayer.positionStream.listen((position) {
+      if (mounted && _isPlaying) {
+        setState(() {
+          _currentPosition = position;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = BaseThemeProvider.colorsOf(context);
+
+    return GestureDetector(
+      onTap: _handleTap,
+      onLongPress: widget.onLongPress,
+      child: Container(
+        key: widget.bubbleKey,
+        constraints: BoxConstraints(
+          maxWidth: widget.maxWidth * 0.7,
+        ),
+        margin: EdgeInsets.zero,
+        decoration: BoxDecoration(
+          color: _getBubbleColor(colors),
+          borderRadius: _getBubbleBorderRadius(),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: Column(
+          crossAxisAlignment: widget.isSelf ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            _buildSoundContent(colors),
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: buildStatusAndTimeWidgets(
+                  message: widget.message,
+                  isSelf: widget.isSelf,
+                  colors: colors,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleTap() {
+    widget.onTap?.call();
+    _playSoundMessage();
+  }
+
+  Widget _buildSoundContent(SemanticColorScheme colorsTheme) {
+    final int soundDuration = widget.message.messageBody?.soundDuration ?? 0;
+
+    return Container(
+      width: 160,
+      child: Row(
+        children: [
+          Icon(
+            widget.isSelf ? Icons.volume_up : Icons.volume_down,
+            color: widget.isSelf ? colorsTheme.textColorAntiPrimary : colorsTheme.textColorPrimary,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(
+                8,
+                (index) {
+                  final height = 4.0 + (index % 3) * 4.0;
+                  final isActive = _isPlaying && (index % 2 == 0);
+
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: 2,
+                    height: isActive ? height * 1.5 : height,
+                    decoration: BoxDecoration(
+                      color: widget.isSelf ? colorsTheme.textColorAntiPrimary : colorsTheme.textColorPrimary,
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            _isPlaying ? _formatDuration(_currentPosition.inSeconds) : _formatDuration(soundDuration),
+            style: TextStyle(
+              fontSize: 12,
+              color: widget.isSelf ? colorsTheme.textColorAntiPrimary : colorsTheme.textColorPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (_isDownloading)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    widget.isSelf ? colorsTheme.textColorAntiPrimary : colorsTheme.textColorPrimary,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _playSoundMessage() async {
+    final soundPath = widget.message.messageBody?.soundPath;
+
+    if (soundPath == null || soundPath.isEmpty || !File(soundPath).existsSync()) {
+      if (widget.messageListStore != null && widget.message.rawMessage != null) {
+        if (_audioPlayer.isPlaying) {
+          await _audioPlayer.stop();
+        }
+
+        setState(() {
+          _isDownloading = true;
+        });
+
+        await widget.messageListStore!.downloadMessageResource(
+          message: widget.message,
+          resourceType: MessageMediaFileType.sound,
+        );
+
+        final newSoundPath = widget.message.messageBody?.soundPath;
+        if (newSoundPath != null && newSoundPath.isNotEmpty && File(newSoundPath).existsSync()) {
+          setState(() {
+            _isDownloading = false;
+          });
+
+          setState(() {
+            _isPlaying = true;
+          });
+
+          try {
+            await _audioPlayer.play(
+              newSoundPath,
+              onComplete: () {
+                if (mounted) {
+                  setState(() {
+                    _isPlaying = false;
+                  });
+                }
+              },
+            );
+          } catch (e) {
+            debugPrint('play sound failed: $e');
+            setState(() {
+              _isPlaying = false;
+            });
+          }
+        } else {
+          setState(() {
+            _isDownloading = false;
+          });
+        }
+        return;
+      }
+      return;
+    }
+
+    if (_isPlaying && soundPath == widget.message.messageBody?.soundPath) {
+      await _audioPlayer.stop();
+      setState(() {
+        _isPlaying = false;
+      });
+      return;
+    }
+
+    if (_audioPlayer.isPlaying) {
+      await _audioPlayer.stop();
+    }
+
+    setState(() {
+      _isPlaying = true;
+    });
+
+    try {
+      await _audioPlayer.play(
+        soundPath,
+        onComplete: () {
+          if (mounted) {
+            setState(() {
+              _isPlaying = false;
+            });
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint('play sound failed: $e');
+      setState(() {
+        _isPlaying = false;
+      });
+    }
+  }
+
+  String _formatDuration(int seconds) {
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  Color _getBubbleColor(SemanticColorScheme colorsTheme) {
+    if (widget.isSelf) {
+      return colorsTheme.bgColorBubbleOwn;
+    } else {
+      return colorsTheme.bgColorBubbleReciprocal;
+    }
+  }
+
+  BorderRadius _getBubbleBorderRadius() {
+    if (widget.isSelf) {
+      return const BorderRadius.only(
+        topLeft: Radius.circular(18),
+        topRight: Radius.circular(18),
+        bottomLeft: Radius.circular(18),
+        bottomRight: Radius.circular(0),
+      );
+    } else {
+      return const BorderRadius.only(
+        topLeft: Radius.circular(18),
+        topRight: Radius.circular(18),
+        bottomLeft: Radius.circular(0),
+        bottomRight: Radius.circular(18),
+      );
+    }
+  }
+}
