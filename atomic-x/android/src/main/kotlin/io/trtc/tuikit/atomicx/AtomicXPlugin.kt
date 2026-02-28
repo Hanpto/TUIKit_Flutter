@@ -5,12 +5,12 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.trtc.tuikit.atomicx.permission.Permission
 import io.trtc.tuikit.atomicx.device_info.Device
-import io.trtc.tuikit.atomicx.albumpicker.AlbumPickerPlugin
-import io.trtc.tuikit.atomicx.videorecorder.VideoRecorderPlugin
-import io.trtc.tuikit.atomicx.audiorecorder.AudioRecorderPlugin
-import io.trtc.tuikit.atomicx.audioplayer.AudioPlayerPlugin
-import io.trtc.tuikit.atomicx.filepicker.FilePickerPlugin
-import io.trtc.tuikit.atomicx.videoplayer.VideoPlayerPlugin
+import io.trtc.tuikit.atomicx.albumpicker.AtomicAlbumPickerPlugin
+import io.trtc.tuikit.atomicx.videorecorder.AtomicVideoRecorderPlugin
+import io.trtc.tuikit.atomicx.audiorecorder.AtomicAudioRecorderPlugin
+import io.trtc.tuikit.atomicx.audioplayer.AtomicAudioPlayerPlugin
+import io.trtc.tuikit.atomicx.filepicker.AtomicFilePickerPlugin
+import io.trtc.tuikit.atomicx.videoplayer.AtomicVideoPlayerPlugin
 
 /** Atomic_xPlugin */
 class AtomicXPlugin: FlutterPlugin, ActivityAware {
@@ -21,12 +21,12 @@ class AtomicXPlugin: FlutterPlugin, ActivityAware {
   private var permission: Permission? = null
   private var device: Device? = null
   private var pipManager: PictureInPictureManager? = null
-  private var albumPickerPlugin: AlbumPickerPlugin? = null
-  private var videoRecorderPlugin: VideoRecorderPlugin? = null
-  private var audioRecorderPlugin: AudioRecorderPlugin? = null
-  private var audioPlayerPlugin: AudioPlayerPlugin? = null
-  private var filePickerPlugin: FilePickerPlugin? = null
-  private var videoPlayerPlugin: VideoPlayerPlugin? = null
+  private var albumPickerPlugin: AtomicAlbumPickerPlugin? = null
+  private var videoRecorderPlugin: AtomicVideoRecorderPlugin? = null
+  private var audioRecorderPlugin: AtomicAudioRecorderPlugin? = null
+  private var audioPlayerPlugin: AtomicAudioPlayerPlugin? = null
+  private var filePickerPlugin: AtomicFilePickerPlugin? = null
+  private var videoPlayerPlugin: AtomicVideoPlayerPlugin? = null
 
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     // Register permission module
@@ -35,20 +35,20 @@ class AtomicXPlugin: FlutterPlugin, ActivityAware {
 
     // Register picture in picture module
     pipManager = PictureInPictureManager(flutterPluginBinding)
-    // Register AlbumPickerPlugin module
-    albumPickerPlugin = AlbumPickerPlugin(flutterPluginBinding)
-    // Register VideoRecorderPlugin module
-    videoRecorderPlugin = VideoRecorderPlugin(flutterPluginBinding)
-    // Register AudioRecorderPlugin module
-    audioRecorderPlugin = AudioRecorderPlugin(flutterPluginBinding)
-    // Register AudioPlayerPlugin module
-    audioPlayerPlugin = AudioPlayerPlugin()
+    // Register AtomicAlbumPickerPlugin module
+    albumPickerPlugin = AtomicAlbumPickerPlugin(flutterPluginBinding)
+    // Register AtomicVideoRecorderPlugin module
+    videoRecorderPlugin = AtomicVideoRecorderPlugin(flutterPluginBinding)
+    // Register AtomicAudioRecorderPlugin module
+    audioRecorderPlugin = AtomicAudioRecorderPlugin(flutterPluginBinding)
+    // Register AtomicAudioPlayerPlugin module
+    audioPlayerPlugin = AtomicAudioPlayerPlugin()
     audioPlayerPlugin?.onAttachedToEngine(flutterPluginBinding)
-    // Register FilePickerPlugin module
-    filePickerPlugin = FilePickerPlugin()
+    // Register AtomicFilePickerPlugin module
+    filePickerPlugin = AtomicFilePickerPlugin()
     filePickerPlugin?.onAttachedToEngine(flutterPluginBinding)
-    // Register VideoPlayerPlugin module
-    videoPlayerPlugin = VideoPlayerPlugin()
+    // Register AtomicVideoPlayerPlugin module
+    videoPlayerPlugin = AtomicVideoPlayerPlugin()
     videoPlayerPlugin?.onAttachedToEngine(flutterPluginBinding)
   }
 

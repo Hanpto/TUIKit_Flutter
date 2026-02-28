@@ -1,13 +1,8 @@
-import 'dart:math';
-import 'dart:ui' as ui;
 import 'package:tuikit_atomic_x/third_party/extended_text/src/extended/gradient/gradient_config.dart';
-import 'package:tuikit_atomic_x/third_party/extended_text/src/extended/rendering/paragraph.dart';
 import 'package:tuikit_atomic_x/third_party/extended_text/src/extended/widgets/rich_text.dart';
 import 'package:tuikit_atomic_x/third_party/extended_text/src/extended/widgets/text_overflow_widget.dart';
 import 'package:tuikit_atomic_x/third_party/extended_text_library/extended_text_library.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 part 'package:tuikit_atomic_x/third_party/extended_text/src/official/widgets/text.dart';
 
@@ -127,75 +122,39 @@ class ExtendedText extends Text {
       effectiveTextStyle = effectiveTextStyle!
           .merge(const TextStyle(fontWeight: FontWeight.bold));
     }
-    final SelectionRegistrar? registrar = SelectionContainer.maybeOf(context);
 
-    late Widget result;
-    if (registrar != null) {
-      result = MouseRegion(
-        cursor: DefaultSelectionStyle.of(context).mouseCursor ??
-            SystemMouseCursors.text,
-        child: ExtendedSelectableTextContainer(
-          textAlign: textAlign ?? defaultTextStyle.textAlign ?? TextAlign.start,
-          textDirection:
-              textDirection, // RichText uses Directionality.of to obtain a default if this is null.
-          locale:
-              locale, // RichText uses Localizations.localeOf to obtain a default if this is null
-          softWrap: softWrap ?? defaultTextStyle.softWrap,
-          overflow: overflow ??
-              effectiveTextStyle?.overflow ??
-              defaultTextStyle.overflow,
-          textScaler: textScaler ?? MediaQuery.textScalerOf(context),
-          maxLines: maxLines ?? defaultTextStyle.maxLines,
-          strutStyle: strutStyle,
-          textWidthBasis: textWidthBasis ?? defaultTextStyle.textWidthBasis,
-          textHeightBehavior: textHeightBehavior ??
-              defaultTextStyle.textHeightBehavior ??
-              DefaultTextHeightBehavior.maybeOf(context),
-          selectionColor: selectionColor ??
-              DefaultSelectionStyle.of(context).selectionColor ??
-              DefaultSelectionStyle.defaultColor,
-          // zmtzawqlp
-          text: _buildTextSpan(effectiveTextStyle),
-          // zmtzawqlp
-          overflowWidget: overflowWidget,
-          // zmtzawqlp
-          canSelectPlaceholderSpan: canSelectPlaceholderSpan,
+    // Note: Removed SelectionContainer/SelectableTextContainer support for Flutter version compatibility.
+    // Text selection features are not used in this project.
+    Widget result = ExtendedRichText(
+      textAlign: textAlign ?? defaultTextStyle.textAlign ?? TextAlign.start,
+      textDirection:
+          textDirection, // RichText uses Directionality.of to obtain a default if this is null.
+      locale:
+          locale, // RichText uses Localizations.localeOf to obtain a default if this is null
+      softWrap: softWrap ?? defaultTextStyle.softWrap,
+      overflow: overflow ??
+          effectiveTextStyle?.overflow ??
+          defaultTextStyle.overflow,
+      textScaler: textScaler ?? MediaQuery.textScalerOf(context),
+      maxLines: maxLines ?? defaultTextStyle.maxLines,
+      strutStyle: strutStyle,
+      textWidthBasis: textWidthBasis ?? defaultTextStyle.textWidthBasis,
+      textHeightBehavior: textHeightBehavior ??
+          defaultTextStyle.textHeightBehavior ??
+          DefaultTextHeightBehavior.maybeOf(context),
+      selectionColor: selectionColor ??
+          DefaultSelectionStyle.of(context).selectionColor ??
+          DefaultSelectionStyle.defaultColor,
+      // zmtzawqlp
+      text: _buildTextSpan(effectiveTextStyle),
+      // zmtzawqlp
+      overflowWidget: overflowWidget,
+      // zmtzawqlp
+      canSelectPlaceholderSpan: canSelectPlaceholderSpan,
+      // zmtzawqlp
+      gradientConfig: gradientConfig,
+    );
 
-          // zmtzawqlp
-          gradientConfig: gradientConfig,
-        ),
-      );
-    } else {
-      result = ExtendedRichText(
-        textAlign: textAlign ?? defaultTextStyle.textAlign ?? TextAlign.start,
-        textDirection:
-            textDirection, // RichText uses Directionality.of to obtain a default if this is null.
-        locale:
-            locale, // RichText uses Localizations.localeOf to obtain a default if this is null
-        softWrap: softWrap ?? defaultTextStyle.softWrap,
-        overflow: overflow ??
-            effectiveTextStyle?.overflow ??
-            defaultTextStyle.overflow,
-        textScaler: textScaler ?? MediaQuery.textScalerOf(context),
-        maxLines: maxLines ?? defaultTextStyle.maxLines,
-        strutStyle: strutStyle,
-        textWidthBasis: textWidthBasis ?? defaultTextStyle.textWidthBasis,
-        textHeightBehavior: textHeightBehavior ??
-            defaultTextStyle.textHeightBehavior ??
-            DefaultTextHeightBehavior.maybeOf(context),
-        selectionColor: selectionColor ??
-            DefaultSelectionStyle.of(context).selectionColor ??
-            DefaultSelectionStyle.defaultColor,
-        // zmtzawqlp
-        text: _buildTextSpan(effectiveTextStyle),
-        // zmtzawqlp
-        overflowWidget: overflowWidget,
-        // zmtzawqlp
-        canSelectPlaceholderSpan: canSelectPlaceholderSpan,
-        // zmtzawqlp
-        gradientConfig: gradientConfig,
-      );
-    }
     if (semanticsLabel != null) {
       result = Semantics(
         textDirection: textDirection,
@@ -230,141 +189,5 @@ class ExtendedText extends Text {
     }
 
     return innerTextSpan;
-  }
-}
-
-class ExtendedSelectableTextContainer extends _SelectableTextContainer {
-  const ExtendedSelectableTextContainer({
-    required super.text,
-    required super.textAlign,
-    super.textDirection,
-    required super.softWrap,
-    required super.overflow,
-    required super.textScaler,
-    super.maxLines,
-    super.locale,
-    super.strutStyle,
-    required super.textWidthBasis,
-    super.textHeightBehavior,
-    required super.selectionColor,
-    this.overflowWidget,
-    this.canSelectPlaceholderSpan = true,
-    this.gradientConfig,
-  });
-  final TextOverflowWidget? overflowWidget;
-
-  /// if false, it will skip PlaceholderSpan
-  final bool canSelectPlaceholderSpan;
-
-  /// Configuration for applying gradients to text.
-  ///
-  /// [gradient] is the gradient that will be applied to the text.
-  /// [ignoreWidgetSpan] determines whether `WidgetSpan` elements should be
-  /// included in the gradient application. By default, widget spans are ignored.
-  /// [mode] specifies how the gradient should be applied to the text. The default
-  /// is [GradientRenderMode.fullText], meaning the gradient will apply to the entire text.
-  /// [ignoreRegex] is a regular expression used to exclude certain parts of the text
-  /// from the gradient effect. For example, it can be used to exclude specific characters
-  /// or words (like emojis or special symbols) from the gradient application.
-  final GradientConfig? gradientConfig;
-  @override
-  State<_SelectableTextContainer> createState() =>
-      ExtendedSelectableTextContainerState();
-}
-
-class ExtendedSelectableTextContainerState
-    extends _SelectableTextContainerState {
-  @override
-  Widget build(BuildContext context) {
-    return SelectionContainer(
-      delegate: _selectionDelegate,
-      // Use [_RichText] wrapper so the underlying [RenderParagraph] can register
-      // its [Selectable]s to the [SelectionContainer] created by this widget.
-      child: ExtendedRichTextWidget(
-        textKey: _textKey,
-        textAlign: widget.textAlign,
-        textDirection: widget.textDirection,
-        locale: widget.locale,
-        softWrap: widget.softWrap,
-        overflow: widget.overflow,
-        textScaler: widget.textScaler,
-        maxLines: widget.maxLines,
-        strutStyle: widget.strutStyle,
-        textWidthBasis: widget.textWidthBasis,
-        textHeightBehavior: widget.textHeightBehavior,
-        selectionColor: widget.selectionColor,
-        text: widget.text,
-        // zmtzawqlp
-        overflowWidget:
-            (widget as ExtendedSelectableTextContainer).overflowWidget,
-        canSelectPlaceholderSpan: (widget as ExtendedSelectableTextContainer)
-            .canSelectPlaceholderSpan,
-        gradientConfig:
-            (widget as ExtendedSelectableTextContainer).gradientConfig,
-      ),
-    );
-  }
-}
-
-class ExtendedRichTextWidget extends _RichTextWidget {
-  const ExtendedRichTextWidget({
-    super.textKey,
-    required super.text,
-    required super.textAlign,
-    super.textDirection,
-    required super.softWrap,
-    required super.overflow,
-    required super.textScaler,
-    super.maxLines,
-    super.locale,
-    super.strutStyle,
-    required super.textWidthBasis,
-    super.textHeightBehavior,
-    required super.selectionColor,
-    this.overflowWidget,
-    this.canSelectPlaceholderSpan = true,
-    this.gradientConfig,
-  });
-  final TextOverflowWidget? overflowWidget;
-
-  /// if false, it will skip PlaceholderSpan
-  final bool canSelectPlaceholderSpan;
-
-  /// Configuration for applying gradients to text.
-  ///
-  /// [gradient] is the gradient that will be applied to the text.
-  /// [ignoreWidgetSpan] determines whether `WidgetSpan` elements should be
-  /// included in the gradient application. By default, widget spans are ignored.
-  /// [mode] specifies how the gradient should be applied to the text. The default
-  /// is [GradientRenderMode.fullText], meaning the gradient will apply to the entire text.
-  /// [ignoreRegex] is a regular expression used to exclude certain parts of the text
-  /// from the gradient effect. For example, it can be used to exclude specific characters
-  /// or words (like emojis or special symbols) from the gradient application.
-  final GradientConfig? gradientConfig;
-  @override
-  Widget build(BuildContext context) {
-    final SelectionRegistrar? registrar = SelectionContainer.maybeOf(context);
-    return ExtendedRichText(
-      key: textKey,
-      textAlign: textAlign,
-      textDirection: textDirection,
-      locale: locale,
-      softWrap: softWrap,
-      overflow: overflow,
-      textScaler: textScaler,
-      maxLines: maxLines,
-      strutStyle: strutStyle,
-      textWidthBasis: textWidthBasis,
-      textHeightBehavior: textHeightBehavior,
-      selectionRegistrar: registrar,
-      selectionColor: selectionColor,
-      text: text,
-      // zmtzawqlp
-      overflowWidget: overflowWidget,
-      // zmtzawqlp
-      canSelectPlaceholderSpan: canSelectPlaceholderSpan,
-      // zmtzawqlp
-      gradientConfig: gradientConfig,
-    );
   }
 }

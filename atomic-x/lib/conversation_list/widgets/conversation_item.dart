@@ -1,13 +1,13 @@
 import 'package:atomic_x_core/atomicxcore.dart' hide CompletionHandler;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:tuikit_atomic_x/base_component/base_component.dart';
 import 'package:tuikit_atomic_x/base_component/utils/time_util.dart';
 import 'package:tuikit_atomic_x/conversation_list/conversation_list.dart';
 import 'package:tuikit_atomic_x/conversation_list/conversation_list_config.dart';
 import 'package:tuikit_atomic_x/emoji_picker/emoji_manager.dart';
 import 'package:tuikit_atomic_x/message_list/utils/message_utils.dart';
+import 'package:tuikit_atomic_x/third_party/flutter_swipe_action_cell/core/cell.dart';
 
 class ConversationItem extends StatefulWidget {
   final ConversationInfo conversation;

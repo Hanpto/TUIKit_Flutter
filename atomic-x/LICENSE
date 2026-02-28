@@ -2,20 +2,50 @@
 
 This project contains modified versions of:
 
-### 1. extended_text
+### 1. azlistview
+Original: https://github.com/flutterchina/azlistview
+Copyright (c) 2020 Flutter中文网
+License: BSD 3-Clause License
+
+### 2. extended_text
 Original: https://github.com/fluttercandies/extended_text
 Copyright (c) 2019 zmtzawqlp
 License: MIT
 
-### 2. extended_text_field
+### 3. extended_text_field
 Original: https://github.com/fluttercandies/extended_text_field
 Copyright (c) 2019 zmtzawqlp
 License: MIT
 
-### 3. extended_text_library
+### 4. extended_text_library
 Original: https://github.com/fluttercandies/extended_text_library
 Copyright (c) 2019 zmtzawqlp
 License: MIT
+
+### 5. flutter_swipe_action_cell
+Original: https://github.com/luckysmg/flutter_swipe_action_cell
+Copyright (c) 2004 luckysmg
+License: Apache-2.0 license
+
+### 6. lpinyin
+Original: https://github.com/flutterchina/lpinyin
+Copyright (c) 2018 Sky24n
+License: BSD 2-Clause License
+
+### 7. scroll_to_index
+Original: https://github.com/quire-io/scroll-to-index
+Copyright (c) 2019 Quire
+License: MIT
+
+### 8. scrollable_positioned_list
+Original: https://github.com/google/flutter.widgets/tree/master/packages/scrollable_positioned_list
+Copyright (c) 2018 Google
+License: BSD-3-Clause
+
+### 9. visibility_detector
+Original: https://github.com/google/flutter.widgets/tree/master/packages/visibility_detector
+Copyright (c) 2018 Google
+License: BSD-3-Clause
 
 ---
 

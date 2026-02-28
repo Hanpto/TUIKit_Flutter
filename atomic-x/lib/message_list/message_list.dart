@@ -4,7 +4,6 @@ import 'package:atomic_x_core/atomicxcore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide AlertDialog;
 import 'package:flutter/services.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:tuikit_atomic_x/base_component/base_component.dart';
 import 'package:tuikit_atomic_x/message_list/message_list_config.dart';
 import 'package:tuikit_atomic_x/message_list/utils/asr_display_manager.dart';
@@ -15,7 +14,8 @@ import 'package:tuikit_atomic_x/message_list/utils/translation_text_parser.dart'
 import 'package:tuikit_atomic_x/message_list/widgets/asr_popup_menu.dart';
 import 'package:tuikit_atomic_x/message_list/widgets/message_item.dart';
 import 'package:tuikit_atomic_x/message_list/widgets/forward/forward_service.dart';
-import 'package:visibility_detector/visibility_detector.dart';
+import 'package:tuikit_atomic_x/third_party/scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:tuikit_atomic_x/third_party/visibility_detector/visibility_detector.dart';
 
 export 'message_list_config.dart';
 export 'widgets/message_bubble.dart';

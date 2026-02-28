@@ -1182,6 +1182,11 @@ class _RenderParagraph extends RenderBox
 /// [PlaceholderSpan]. The [RenderParagraph] splits itself on [PlaceholderSpan]
 /// to create multiple `_SelectableFragment`s so that they can be selected
 /// separately.
+///
+/// Note: This class uses noSuchMethod to handle Flutter version differences.
+/// In Flutter 3.29+, Selectable requires getSelection() method returning SelectedContentRange?,
+/// but this type doesn't exist in Flutter 3.27. The noSuchMethod approach allows
+/// cross-version compatibility.
 class _SelectableFragment
     with Selectable, Diagnosticable, ChangeNotifier
     implements TextLayoutMetrics {
@@ -1207,6 +1212,18 @@ class _SelectableFragment
 
   LayerLink? _startHandleLayerLink;
   LayerLink? _endHandleLayerLink;
+
+  // Handle Flutter version differences dynamically.
+  // In Flutter 3.29+, Selectable requires getSelection() returning SelectedContentRange?.
+  // This noSuchMethod handles the call at runtime for cross-version compatibility.
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == #getSelection) {
+      // Return null for getSelection() - satisfies Flutter 3.29+ requirement
+      return null;
+    }
+    return super.noSuchMethod(invocation);
+  }
 
   @override
   SelectionGeometry get value => _selectionGeometry;
@@ -1335,16 +1352,8 @@ class _SelectableFragment
         final SelectWordSelectionEvent selectWord =
             event as SelectWordSelectionEvent;
         result = _handleSelectWord(selectWord.globalPosition);
-      case SelectionEventType.selectParagraph:
-        final SelectParagraphSelectionEvent selectParagraph =
-            event as SelectParagraphSelectionEvent;
-        if (selectParagraph.absorb) {
-          _handleSelectAll();
-          result = SelectionResult.next;
-          _selectableContainsOriginTextBoundary = true;
-        } else {
-          result = _handleSelectParagraph(selectParagraph.globalPosition);
-        }
+      // Note: SelectionEventType.selectParagraph is only available in Flutter 3.29+
+      // Removed for backward compatibility with Flutter 3.27
       case SelectionEventType.granularlyExtendSelection:
         final GranularlyExtendSelectionEvent granularlyExtendSelection =
             event as GranularlyExtendSelectionEvent;
@@ -1361,6 +1370,9 @@ class _SelectableFragment
           directionallyExtendSelection.isEnd,
           directionallyExtendSelection.direction,
         );
+      // Handle any future selection event types (e.g., selectParagraph in Flutter 3.29+)
+      default:
+        result = SelectionResult.none;
     }
 
     if (existingSelectionStart != _textSelectionStart ||
@@ -1384,17 +1396,6 @@ class _SelectableFragment
       _textSelectionEnd!.offset,
     );
     return SelectedContent(plainText: fullText.substring(start, end));
-  }
-
-  @override
-  SelectedContentRange? getSelection() {
-    if (_textSelectionStart == null || _textSelectionEnd == null) {
-      return null;
-    }
-    return SelectedContentRange(
-      startOffset: _textSelectionStart!.offset,
-      endOffset: _textSelectionEnd!.offset,
-    );
   }
 
   void _didChangeSelection() {
@@ -3059,48 +3060,8 @@ class _SelectableFragment
     return SelectionResult.end;
   }
 
-  TextRange? _intersect(TextRange a, TextRange b) {
-    assert(a.isNormalized);
-    assert(b.isNormalized);
-    final int startMax = math.max(a.start, b.start);
-    final int endMin = math.min(a.end, b.end);
-    if (startMax <= endMin) {
-      // Intersection.
-      return TextRange(start: startMax, end: endMin);
-    }
-    return null;
-  }
-
-  SelectionResult _handleSelectMultiFragmentTextBoundary(
-    _TextBoundaryRecord textBoundary,
-  ) {
-    // This fragment may not contain the boundary, decide what direction the target
-    // fragment is located in. Because fragments are separated by placeholder
-    // spans, we also check if the beginning or end of the boundary is touching
-    // either edge of this fragment.
-    if (textBoundary.boundaryStart.offset < range.start &&
-        textBoundary.boundaryEnd.offset <= range.start) {
-      return SelectionResult.previous;
-    } else if (textBoundary.boundaryStart.offset >= range.end &&
-        textBoundary.boundaryEnd.offset > range.end) {
-      return SelectionResult.next;
-    }
-    final TextRange boundaryAsRange = TextRange(
-      start: textBoundary.boundaryStart.offset,
-      end: textBoundary.boundaryEnd.offset,
-    );
-    final TextRange? intersectRange = _intersect(range, boundaryAsRange);
-    if (intersectRange != null) {
-      _textSelectionStart = TextPosition(offset: intersectRange.start);
-      _textSelectionEnd = TextPosition(offset: intersectRange.end);
-      _selectableContainsOriginTextBoundary = true;
-      if (range.end < textBoundary.boundaryEnd.offset) {
-        return SelectionResult.next;
-      }
-      return SelectionResult.end;
-    }
-    return SelectionResult.none;
-  }
+  // Note: _intersect and _handleSelectMultiFragmentTextBoundary were only used by 
+  // _handleSelectParagraph (Flutter 3.29+). Removed for backward compatibility with Flutter 3.27
 
   _TextBoundaryRecord _adjustTextBoundaryAtPosition(
     TextRange textBoundary,
@@ -3140,13 +3101,8 @@ class _SelectableFragment
     return _adjustTextBoundaryAtPosition(word, position);
   }
 
-  SelectionResult _handleSelectParagraph(Offset globalPosition) {
-    final Offset localPosition = paragraph.globalToLocal(globalPosition);
-    final TextPosition position = paragraph.getPositionForOffset(localPosition);
-    final _TextBoundaryRecord paragraphBoundary =
-        _getParagraphBoundaryAtPosition(position, fullText);
-    return _handleSelectMultiFragmentTextBoundary(paragraphBoundary);
-  }
+  // Note: _handleSelectParagraph is only used by SelectionEventType.selectParagraph (Flutter 3.29+)
+  // Removed for backward compatibility with Flutter 3.27
 
   // zmtzawqlp
   TextPosition _getPositionInParagraph(_RenderParagraph targetParagraph) {
@@ -3590,7 +3546,8 @@ class _SelectableFragment
     _cachedBoundingBoxes = null;
   }
 
-  @override
+  // Note: contentLength is added in Flutter 3.29+ Selectable interface
+  // Removed @override for backward compatibility with Flutter 3.27
   int get contentLength => range.end - range.start;
 
   @override

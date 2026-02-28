@@ -1,13 +1,13 @@
-import 'package:azlistview/azlistview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:lpinyin/lpinyin.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:tuikit_atomic_x/base_component/basic_controls/avatar.dart';
 import 'package:tuikit_atomic_x/base_component/basic_controls/button.dart' as atomicx;
 import 'package:tuikit_atomic_x/base_component/localizations/atomic_localizations.dart';
 import 'package:tuikit_atomic_x/base_component/theme/color_scheme.dart';
 import 'package:tuikit_atomic_x/base_component/theme/theme_state.dart';
+import 'package:tuikit_atomic_x/third_party/azlistview/azlistview.dart';
+import 'package:tuikit_atomic_x/third_party/lpinyin/lpinyin.dart';
+import 'package:tuikit_atomic_x/third_party/scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class UserPickerData {
   final String key;
@@ -51,7 +51,7 @@ class UserPicker extends StatefulWidget {
   final bool showSelectedList;
   final VoidCallback? onReachEnd;
   final Function(List<UserPickerData>)? onConfirm;
-  
+
   /// Optional widget to display at the top of the list (before the sorted items)
   final Widget? headerWidget;
 
@@ -122,7 +122,7 @@ class _UserPickerState extends State<UserPicker> {
 
     // Preserve currently selected items by key when dataSource updates
     final previousSelectedKeys = _selectedItems.map((item) => item.key).toSet();
-    
+
     _selectedItems = [];
     final defaultKeys = widget.defaultSelectedItems ?? [];
     final lockedKeys = widget.lockedItems ?? [];
@@ -161,10 +161,9 @@ class _UserPickerState extends State<UserPicker> {
           !_selectedItems.any((selected) => selected.key == item.key)) {
         _selectedItems.add(item);
       }
-      
+
       // Restore previously selected items that exist in new dataSource
-      if (previousSelectedKeys.contains(item.key) &&
-          !_selectedItems.any((selected) => selected.key == item.key)) {
+      if (previousSelectedKeys.contains(item.key) && !_selectedItems.any((selected) => selected.key == item.key)) {
         _selectedItems.add(item);
       }
     }

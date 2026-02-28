@@ -1,3 +1,17 @@
+## 3.6.6
+* Fixed the conflict issue on the iOS platform after using the third-party library file_picker.
+* Removed dependencies on certain third-party libraries.
+
+## 3.6.5
+* Optimize the UI display effect of the settings page.
+
+## 3.6.4
+* Added UI elements related to AI transcription.
+
+## 3.6.3
+* Compatible with atomic_x_core version 3.6.3.
+* Optimized CallView effects, providing a picture-in-picture style.
+
 ## 3.6.2
 * Added AtomicAlertDialog implemented with Overlay.
 * Added new features: search, message merge/individual forwarding, batch delete, @mentions, emoji reactions, speech-to-text, and text translation.
