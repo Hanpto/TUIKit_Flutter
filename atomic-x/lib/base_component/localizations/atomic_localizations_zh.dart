@@ -1299,6 +1299,9 @@ class AtomicLocalizationsZh extends AtomicLocalizations {
   String get holdToTalk => '按住说话';
 
   @override
+  String get sendMessageOrHoldToTalk => '发消息或按住说话...';
+
+  @override
   String get releaseToSend => '松手发送';
 
   @override
@@ -1494,6 +1497,15 @@ class AtomicLocalizationsZh extends AtomicLocalizations {
 
   @override
   String get callInviteUserErrorOrInvalidCallParameters => '邀请用户错误或通话参数无效';
+
+  @override
+  String get releaseToConvert => '松手转文字';
+
+  @override
+  String get voiceToTextFailed => '未识别到文字内容';
+
+  @override
+  String get sendOriginalVoice => '发送原语音';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2791,6 +2803,9 @@ class AtomicLocalizationsZhHans extends AtomicLocalizationsZh {
   String get holdToTalk => '按住说话';
 
   @override
+  String get sendMessageOrHoldToTalk => '发消息或按住说话...';
+
+  @override
   String get releaseToSend => '松手发送';
 
   @override
@@ -2986,6 +3001,15 @@ class AtomicLocalizationsZhHans extends AtomicLocalizationsZh {
 
   @override
   String get callInviteUserErrorOrInvalidCallParameters => '邀请用户错误或通话参数无效';
+
+  @override
+  String get releaseToConvert => '松手转文字';
+
+  @override
+  String get voiceToTextFailed => '未识别到文字内容';
+
+  @override
+  String get sendOriginalVoice => '发送原语音';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -4283,6 +4307,9 @@ class AtomicLocalizationsZhHant extends AtomicLocalizationsZh {
   String get holdToTalk => '按住說話';
 
   @override
+  String get sendMessageOrHoldToTalk => '發訊息或按住說話...';
+
+  @override
   String get releaseToSend => '鬆手發送';
 
   @override
@@ -4478,4 +4505,13 @@ class AtomicLocalizationsZhHant extends AtomicLocalizationsZh {
 
   @override
   String get callInviteUserErrorOrInvalidCallParameters => '邀請用戶錯誤或通話參數無效';
+
+  @override
+  String get releaseToConvert => '鬆手轉文字';
+
+  @override
+  String get voiceToTextFailed => '未識別到文字內容';
+
+  @override
+  String get sendOriginalVoice => '發送原語音';
 }

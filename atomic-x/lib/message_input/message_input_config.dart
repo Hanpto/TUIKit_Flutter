@@ -6,6 +6,7 @@ abstract class MessageInputConfigProtocol {
   bool get isShowMore;
   bool get enableReadReceipt;
   bool get enableMention;
+  bool get enableVoiceToTextOnRecord;
 }
 
 class ChatMessageInputConfig implements MessageInputConfigProtocol {
@@ -14,6 +15,7 @@ class ChatMessageInputConfig implements MessageInputConfigProtocol {
   final bool? _userIsShowMore;
   final bool? _userEnableReadReceipt;
   final bool? _userEnableMention;
+  final bool? _userEnableVoiceToTextOnRecord;
 
   @override
   bool get isShowAudioRecorder => _userIsShowAudioRecorder ?? true;
@@ -36,15 +38,20 @@ class ChatMessageInputConfig implements MessageInputConfigProtocol {
   @override
   bool get enableMention => _userEnableMention ?? true;
 
+  @override
+  bool get enableVoiceToTextOnRecord => _userEnableVoiceToTextOnRecord ?? true;
+
   const ChatMessageInputConfig({
     bool? isShowAudioRecorder,
     bool? isShowPhotoTaker,
     bool? isShowMore,
     bool? enableReadReceipt,
     bool? enableMention,
+    bool? enableVoiceToTextOnRecord,
   })  : _userIsShowAudioRecorder = isShowAudioRecorder,
         _userIsShowPhotoTaker = isShowPhotoTaker,
         _userIsShowMore = isShowMore,
         _userEnableReadReceipt = enableReadReceipt,
-        _userEnableMention = enableMention;
+        _userEnableMention = enableMention,
+        _userEnableVoiceToTextOnRecord = enableVoiceToTextOnRecord;
 }

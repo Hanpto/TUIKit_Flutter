@@ -460,6 +460,7 @@
         }
     },
     "holdToTalk": "Hold to talk",
+    "sendMessageOrHoldToTalk": "Type or hold to talk...",
     "releaseToSend": "Release to send",
     "releaseToCancel": "Release to cancel",
     "recordCountdownTips": "Recording will stop in {seconds}s",
@@ -531,5 +532,8 @@
     "callFailedToInitiateCallCheckLoginStatus": "Failed to initiate call, please check your login status and try again",
     "callFailedToInitiateOrJoinCall": "Failed to initiate call / Failed to join call",
     "callCurrentCallSupportsMax9Participants": "Current call supports a maximum of 9 participants online simultaneously",
-    "callInviteUserErrorOrInvalidCallParameters": "Invite user error or invalid call parameters"
+    "callInviteUserErrorOrInvalidCallParameters": "Invite user error or invalid call parameters",
+    "releaseToConvert": "Release to convert",
+    "voiceToTextFailed": "No text recognized",
+    "sendOriginalVoice": "Send original voice"
 }

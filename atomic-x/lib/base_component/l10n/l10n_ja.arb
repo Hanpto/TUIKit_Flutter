@@ -460,6 +460,7 @@
         }
     },
     "holdToTalk": "長押しで録音",
+    "sendMessageOrHoldToTalk": "入力または長押しで話す...",
     "releaseToSend": "離すと送信",
     "releaseToCancel": "離すとキャンセル",
     "recordCountdownTips": "{seconds}秒後に録音が停止します",
@@ -531,5 +532,8 @@
     "callFailedToInitiateCallCheckLoginStatus": "通話開始に失敗しました。ログイン状態を確認して、もう一度お試しください",
     "callFailedToInitiateOrJoinCall": "通話開始に失敗しました / 通話参加に失敗しました",
     "callCurrentCallSupportsMax9Participants": "現在の通話は最大9人まで同時にオンラインで参加できます。",
-    "callInviteUserErrorOrInvalidCallParameters": "ユーザー招待エラーまたは通話パラメータが無効です"
+    "callInviteUserErrorOrInvalidCallParameters": "ユーザー招待エラーまたは通話パラメータが無効です",
+    "releaseToConvert": "離すとテキスト化",
+    "voiceToTextFailed": "テキストを認識できませんでした",
+    "sendOriginalVoice": "音声を送信"
 }

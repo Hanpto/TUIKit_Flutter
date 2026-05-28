@@ -2602,6 +2602,12 @@ abstract class AtomicLocalizations {
   /// **'Hold to talk'**
   String get holdToTalk;
 
+  /// No description provided for @sendMessageOrHoldToTalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Type or hold to talk...'**
+  String get sendMessageOrHoldToTalk;
+
   /// No description provided for @releaseToSend.
   ///
   /// In en, this message translates to:
@@ -2979,6 +2985,24 @@ abstract class AtomicLocalizations {
   /// In en, this message translates to:
   /// **'Invite user error or invalid call parameters'**
   String get callInviteUserErrorOrInvalidCallParameters;
+
+  /// No description provided for @releaseToConvert.
+  ///
+  /// In en, this message translates to:
+  /// **'Release to convert'**
+  String get releaseToConvert;
+
+  /// No description provided for @voiceToTextFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'No text recognized'**
+  String get voiceToTextFailed;
+
+  /// No description provided for @sendOriginalVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Send original voice'**
+  String get sendOriginalVoice;
 }
 
 class _AtomicLocalizationsDelegate

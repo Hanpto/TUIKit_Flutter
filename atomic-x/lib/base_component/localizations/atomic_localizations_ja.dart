@@ -1301,6 +1301,9 @@ class AtomicLocalizationsJa extends AtomicLocalizations {
   String get holdToTalk => '長押しで録音';
 
   @override
+  String get sendMessageOrHoldToTalk => '入力または長押しで話す...';
+
+  @override
   String get releaseToSend => '離すと送信';
 
   @override
@@ -1501,4 +1504,13 @@ class AtomicLocalizationsJa extends AtomicLocalizations {
   @override
   String get callInviteUserErrorOrInvalidCallParameters =>
       'ユーザー招待エラーまたは通話パラメータが無効です';
+
+  @override
+  String get releaseToConvert => '離すとテキスト化';
+
+  @override
+  String get voiceToTextFailed => 'テキストを認識できませんでした';
+
+  @override
+  String get sendOriginalVoice => '音声を送信';
 }

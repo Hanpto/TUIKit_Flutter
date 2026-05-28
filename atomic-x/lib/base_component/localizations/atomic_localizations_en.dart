@@ -1318,6 +1318,9 @@ class AtomicLocalizationsEn extends AtomicLocalizations {
   String get holdToTalk => 'Hold to talk';
 
   @override
+  String get sendMessageOrHoldToTalk => 'Type or hold to talk...';
+
+  @override
   String get releaseToSend => 'Release to send';
 
   @override
@@ -1528,4 +1531,13 @@ class AtomicLocalizationsEn extends AtomicLocalizations {
   @override
   String get callInviteUserErrorOrInvalidCallParameters =>
       'Invite user error or invalid call parameters';
+
+  @override
+  String get releaseToConvert => 'Release to convert';
+
+  @override
+  String get voiceToTextFailed => 'No text recognized';
+
+  @override
+  String get sendOriginalVoice => 'Send original voice';
 }

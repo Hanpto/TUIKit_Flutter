@@ -1,3 +1,7 @@
+## 4.1.3
+* Optimized input field interaction for easier switching between text and voice messages.
+* Added the ability to convert voice to text after long-pressing the input field for recording.
+
 ## 4.1.2
 * Fix UIScene lifecycle support for VideoRecorder and AlbumPicker window presentation. 
 

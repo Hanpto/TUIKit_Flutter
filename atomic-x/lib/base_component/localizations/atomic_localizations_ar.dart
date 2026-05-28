@@ -1315,6 +1315,9 @@ class AtomicLocalizationsAr extends AtomicLocalizations {
   String get holdToTalk => 'اضغط مع الاستمرار للتحدث';
 
   @override
+  String get sendMessageOrHoldToTalk => 'اكتب أو اضغط مطولاً للتحدث...';
+
+  @override
   String get releaseToSend => 'حرر للإرسال';
 
   @override
@@ -1522,4 +1525,13 @@ class AtomicLocalizationsAr extends AtomicLocalizations {
   @override
   String get callInviteUserErrorOrInvalidCallParameters =>
       'خطأ في دعوة المستخدم أو معلمات المكالمة غير صالحة';
+
+  @override
+  String get releaseToConvert => 'حرر للتحويل إلى نص';
+
+  @override
+  String get voiceToTextFailed => 'لم يتم التعرف على أي نص';
+
+  @override
+  String get sendOriginalVoice => 'إرسال الصوت الأصلي';
 }

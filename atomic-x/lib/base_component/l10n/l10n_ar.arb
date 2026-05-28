@@ -460,6 +460,7 @@
         }
     },
     "holdToTalk": "اضغط مع الاستمرار للتحدث",
+    "sendMessageOrHoldToTalk": "اكتب أو اضغط مطولاً للتحدث...",
     "releaseToSend": "حرر للإرسال",
     "releaseToCancel": "حرر للإلغاء",
     "recordCountdownTips": "سيتوقف التسجيل بعد {seconds} ثانية",
@@ -531,5 +532,8 @@
     "callFailedToInitiateCallCheckLoginStatus": "فشل في بدء المكالمة، يرجى التحقق من حالة تسجيل الدخول والمحاولة مرة أخرى",
     "callFailedToInitiateOrJoinCall": "فشل في بدء المكالمة / فشل في الانضمام إلى المكالمة",
     "callCurrentCallSupportsMax9Participants": "تدعم المكالمة الحالية 9 مشاركين كحد أقصى عبر الإنترنت في نفس الوقت",
-    "callInviteUserErrorOrInvalidCallParameters": "خطأ في دعوة المستخدم أو معلمات المكالمة غير صالحة"
+    "callInviteUserErrorOrInvalidCallParameters": "خطأ في دعوة المستخدم أو معلمات المكالمة غير صالحة",
+    "releaseToConvert": "حرر للتحويل إلى نص",
+    "voiceToTextFailed": "لم يتم التعرف على أي نص",
+    "sendOriginalVoice": "إرسال الصوت الأصلي"
 }

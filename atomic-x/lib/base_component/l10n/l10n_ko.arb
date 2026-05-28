@@ -461,6 +461,7 @@
         }
     },
     "holdToTalk": "길게 눌러 말하기",
+    "sendMessageOrHoldToTalk": "입력하거나 길게 눌러 말하기...",
     "releaseToSend": "놓으면 보내기",
     "releaseToCancel": "놓으면 취소",
     "recordCountdownTips": "{seconds}초 후 녹음이 중지됩니다",
@@ -532,5 +533,8 @@
     "callFailedToInitiateCallCheckLoginStatus": "통화 시작에 실패했습니다. 로그인 상태를 확인하고 다시 시도해 주세요",
     "callFailedToInitiateOrJoinCall": "통화 시작 실패 / 통화 참여 실패",
     "callCurrentCallSupportsMax9Participants": "현재 통화는 최대 9명이 동시에 온라인으로 참여할 수 있습니다",
-    "callInviteUserErrorOrInvalidCallParameters": "사용자 초대 오류 또는 잘못된 통화 매개변수"
+    "callInviteUserErrorOrInvalidCallParameters": "사용자 초대 오류 또는 잘못된 통화 매개변수",
+    "releaseToConvert": "놓으면 텍스트로 변환",
+    "voiceToTextFailed": "텍스트를 인식하지 못했습니다",
+    "sendOriginalVoice": "원본 음성 보내기"
 }

@@ -460,6 +460,7 @@
         }
     },
     "holdToTalk": "按住說話",
+    "sendMessageOrHoldToTalk": "發訊息或按住說話...",
     "releaseToSend": "鬆手發送",
     "releaseToCancel": "鬆手取消",
     "recordCountdownTips": "{seconds}s 後將停止錄音",
@@ -531,5 +532,8 @@
     "callFailedToInitiateCallCheckLoginStatus": "發起通話失敗，請檢查登錄狀態後重試",
     "callFailedToInitiateOrJoinCall": "發起通話失敗 / 加入通話失敗",
     "callCurrentCallSupportsMax9Participants": "當前通話最多支持 9 人同時在線。",
-    "callInviteUserErrorOrInvalidCallParameters": "邀請用戶錯誤或通話參數無效"
+    "callInviteUserErrorOrInvalidCallParameters": "邀請用戶錯誤或通話參數無效",
+    "releaseToConvert": "鬆手轉文字",
+    "voiceToTextFailed": "未識別到文字內容",
+    "sendOriginalVoice": "發送原語音"
 }

@@ -16,8 +16,10 @@ import 'package:tuikit_atomic_x/emoji_picker/emoji_manager.dart';
 import 'package:tuikit_atomic_x/emoji_picker/emoji_picker.dart';
 import 'package:tuikit_atomic_x/file_picker/file_picker.dart';
 import 'package:tuikit_atomic_x/message_input/src/chat_special_text_span_builder.dart';
+import 'package:tuikit_atomic_x/message_input/src/record_pointer_up_action.dart';
 import 'package:tuikit_atomic_x/third_party/extended_text_field/extended_text_field.dart';
 import 'package:tuikit_atomic_x/audio_player/audio_player_platform.dart';
+import 'package:tuikit_atomic_x/permission/permission.dart';
 import 'package:tuikit_atomic_x/video_recorder/video_recorder.dart';
 
 import 'mention/mention_info.dart';
@@ -27,6 +29,12 @@ import 'widget/audio_record_overlay.dart';
 
 export 'mention/mention_info.dart';
 export 'message_input_config.dart';
+
+/// Three-state input mode for the message input bar.
+/// - [idle]: Default state on chat entry. Shows hint "发消息或按住说话...", mic icon, keyboard not shown.
+/// - [text]: Text input active. Keyboard shown, mic icon on left.
+/// - [voice]: Voice recording mode. Shows "Hold to talk" button, keyboard icon on left.
+enum _InputMode { idle, text, voice }
 
 class MessageInput extends StatefulWidget {
   final String conversationID;
@@ -58,11 +66,30 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
   Timer? _recordingStarter;
   bool _isWaitingToStartRecord = false;
   bool _showSendButton = false;
+
+  /// Timer for distinguishing tap vs long-press in idle mode.
+  /// If the pointer is lifted before this fires, it's a tap (→ text mode).
+  /// If the timer fires while the pointer is still down, it's a long-press (→ start recording).
+  Timer? _idleLongPressTimer;
+  bool _isIdleLongPressing = false;
+
+  /// Set when the idle long-press timer has fired (i.e. recording was triggered).
+  /// Used to suppress the synthetic GestureDetector.onTap that Flutter still
+  /// emits after a long press, so we don't accidentally switch into text mode
+  /// and pop up the keyboard right after the user just sent a voice message.
+  bool _idleLongPressHandled = false;
   bool _showEmojiPanel = false;
   bool _showMorePanel = false;
   int _morePanelPageIndex = 0;
   final GlobalKey<AudioRecordOverlayState> _recordOverlayKey = GlobalKey();
   OverlayEntry? _recordOverlayEntry;
+
+  /// When `true`, the next [AudioRecordOverlay.onRecordFinish] callback should
+  /// be routed to the overlay's voice-to-text state machine instead of being
+  /// sent as a voice message. Set to `true` by [_onStopRecording] when the
+  /// user released on the convert-to-text button, and reset back to `false`
+  /// inside the overlay callback or when the overlay is cancelled.
+  bool _pendingConvertRecord = false;
 
   double _bottomPadding = 0.0;
 
@@ -72,8 +99,8 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
 
   final GlobalKey<TooltipState> _micTooltipKey = GlobalKey<TooltipState>();
 
-  /// Whether the input is in voice mode (WeChat-style: tap mic button to toggle)
-  bool _isVoiceMode = false;
+  /// Current input mode: idle (default), text (keyboard shown), or voice (hold-to-talk).
+  _InputMode _inputMode = _InputMode.idle;
 
   // Draft related state
   Timer? _draftSaveTimer;
@@ -123,17 +150,36 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
         _isSwitchingPanel = false;
         return;
       }
-      // When focus is truly lost (e.g., tapping outside), collapse emoji and more panels
+      // While the @ mention picker is being shown, focus loss is caused by the
+      // route push, not by the user dismissing the input. Keep the current
+      // text mode so we can resume editing after picker returns.
+      if (_isMentionPickerShowing) {
+        return;
+      }
+      // When focus is truly lost (e.g., tapping outside), collapse emoji and more panels.
+      // Only fall back to idle when the input is empty; if the user has typed
+      // anything (including @ mentions), keep text mode so the entered content
+      // remains visible after the keyboard collapses.
+      bool needsRebuild = false;
       if (_showEmojiPanel || _showMorePanel) {
-        setState(() {
-          _showEmojiPanel = false;
-          _showMorePanel = false;
-        });
+        _showEmojiPanel = false;
+        _showMorePanel = false;
+        needsRebuild = true;
+      }
+      if (_inputMode == _InputMode.text && _textEditingController.text.isEmpty) {
+        _inputMode = _InputMode.idle;
+        needsRebuild = true;
+      }
+      if (needsRebuild) {
+        setState(() {});
       }
     }
   }
 
   /// Collapse all panels (emoji, more). Called externally when user taps blank area.
+  /// In text mode, dismisses the keyboard. Only falls back to idle when the input
+  /// is empty, so any already-entered text (including @ mentions) stays visible
+  /// after the keyboard collapses. Voice mode is unaffected.
   void collapseAllPanels() {
     bool needsRebuild = false;
     if (_showEmojiPanel) {
@@ -142,6 +188,13 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
     }
     if (_showMorePanel) {
       _showMorePanel = false;
+      needsRebuild = true;
+    }
+    if (_inputMode == _InputMode.text) {
+      _textEditingFocusNode.unfocus();
+      if (_textEditingController.text.isEmpty) {
+        _inputMode = _InputMode.idle;
+      }
       needsRebuild = true;
     }
     if (needsRebuild) {
@@ -200,9 +253,10 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
     // Request focus on the input field
     _textEditingFocusNode.requestFocus();
 
-    // Update send button state
+    // Update send button state and switch to text mode
     setState(() {
       _showSendButton = newText.trim().isNotEmpty;
+      _inputMode = _InputMode.text;
     });
   }
 
@@ -222,6 +276,7 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
   @override
   void dispose() {
     _removeRecordOverlay();
+    _idleLongPressTimer?.cancel();
     _textEditingController.removeListener(_onTextChanged);
     _textEditingFocusNode.removeListener(_onFocusChanged);
     _draftSaveTimer?.cancel();
@@ -256,7 +311,18 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
     _textEditingController.selection = TextSelection.fromPosition(
       TextPosition(offset: draft.length),
     );
-    // Auto focus after frame is built
+    // Switch to text mode synchronously so the very first build after the
+    // draft load renders the input field with the draft content, instead of
+    // briefly showing the idle placeholder "发消息或按住说话..." until the
+    // keyboard pops up and triggers a rebuild via viewInsets changes.
+    if (mounted) {
+      setState(() {
+        _inputMode = _InputMode.text;
+      });
+    } else {
+      _inputMode = _InputMode.text;
+    }
+    // Auto focus after frame is built (keyboard pop-up requires post-frame).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _textEditingFocusNode.requestFocus();
@@ -348,6 +414,18 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
       ),
     ).then((_) {
       _isMentionPickerShowing = false;
+      // After the picker route pops (whether by selecting members or by
+      // cancelling), restore the input state so the typed text is visible
+      // and the keyboard pops back up for continued editing.
+      if (!mounted) return;
+      if (_textEditingController.text.isNotEmpty && _inputMode != _InputMode.voice) {
+        if (_inputMode != _InputMode.text) {
+          setState(() {
+            _inputMode = _InputMode.text;
+          });
+        }
+        _textEditingFocusNode.requestFocus();
+      }
     });
   }
 
@@ -411,6 +489,13 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
     _previousTextLength = newText.length;
     _textEditingController.addListener(_onTextChanged);
 
+    // Explicitly switch back to text mode so the input field renders the
+    // mention text instead of the idle hint. Defensive: even if focus state
+    // gets out of sync, the UI will still show the typed content.
+    setState(() {
+      _inputMode = _InputMode.text;
+      _showSendButton = newText.trim().isNotEmpty;
+    });
     _textEditingFocusNode.requestFocus();
   }
 
@@ -859,6 +944,7 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
     final colorScheme = BaseThemeProvider.colorsOf(context);
     final atomicLocalizations = AtomicLocalizations.of(context);
     final overlay = Overlay.of(context);
+    final enableConvert = widget.config.enableVoiceToTextOnRecord;
 
     _recordOverlayEntry = OverlayEntry(
       builder: (overlayContext) {
@@ -868,12 +954,32 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
             key: _recordOverlayKey,
             colorScheme: colorScheme,
             atomicLocalizations: atomicLocalizations,
+            enableVoiceToText: enableConvert,
             onRecordFinish: (recordInfo) {
+              // When the user released on the convert button, we DO NOT close
+              // the overlay or send the audio: instead, hand the captured
+              // file path to the overlay's converting state machine.
+              if (_pendingConvertRecord) {
+                _pendingConvertRecord = false;
+                if (recordInfo.errorCode == AudioRecordResultCode.success ||
+                    recordInfo.errorCode == AudioRecordResultCode.successExceedMaxDuration) {
+                  _recordOverlayKey.currentState
+                      ?.enterConverting(recordInfo.path, recordInfo.duration);
+                  return;
+                }
+                // Recording too short / failed: fall through to default
+                // close-and-toast behavior (legacy path).
+              }
               _removeRecordOverlay();
               _onAudioRecorderFinished(recordInfo);
             },
             onRecordCancelled: () {
+              _pendingConvertRecord = false;
               _removeRecordOverlay();
+            },
+            onSendText: (text) {
+              _removeRecordOverlay();
+              _sendTextMessageFromVoice(text);
             },
           ),
         );
@@ -907,18 +1013,55 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
     }
   }
 
-  void _onStartRecording(PointerDownEvent event) {
+  /// Send a plain-text message constructed from voice-to-text conversion.
+  /// Used by [AudioRecordOverlay]'s editing-state "send" button.
+  void _sendTextMessageFromVoice(String text) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return;
+    final messageInfo = MessageInfo();
+    messageInfo.messageType = MessageType.text;
+    MessageBody messageBody = MessageBody();
+    messageBody.text = trimmed;
+    messageInfo.messageBody = messageBody;
+    final result = await _sendMessage(messageInfo);
+    if (!result.isSuccess) {
+      debugPrint(
+        "_sendTextMessageFromVoice, errorCode:${result.errorCode}, errorMessage:${result.errorMessage}",
+      );
+    }
+  }
+
+  void _onStartRecording(PointerDownEvent event) async {
     // Stop any currently playing audio to prevent it from being captured
     // by the microphone during recording.
     AudioPlayerPlatform.stop();
 
-    _showRecordOverlay();
-
-    // Immediately reset recording state to avoid showing old progress
-    _recordOverlayKey.currentState?.resetRecordingState();
-
+    // Set flag BEFORE async permission check so that _onStopRecording
+    // can correctly cancel if the user lifts their finger during the await.
     _recordingStarter?.cancel();
     _isWaitingToStartRecord = true;
+
+    final micStatus = await Permission.check(PermissionType.microphone);
+    if (micStatus != PermissionStatus.granted) {
+      // If PointerUp already fired during await, _isWaitingToStartRecord
+      // was reset — no further cleanup needed.
+      if (_isWaitingToStartRecord) {
+        _isWaitingToStartRecord = false;
+      }
+      if (!mounted) return;
+      await Permission.checkAndRequest(context, [PermissionType.microphone]);
+      return;
+    }
+
+    // If PointerUp fired during the await above, abort — recording was
+    // already cancelled by _onStopRecording.
+    if (!_isWaitingToStartRecord) {
+      return;
+    }
+
+    _showRecordOverlay();
+
+    _recordOverlayKey.currentState?.resetRecordingState();
 
     _recordingStarter = Timer(const Duration(milliseconds: 100), () {
       _isWaitingToStartRecord = false;
@@ -940,14 +1083,28 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
         Tooltip.dismissAllToolTips();
       });
     } else {
-      // Check if finger is over cancel button on the overlay
-      bool gestureCancel = _recordOverlayKey.currentState?.isPointerOverCancelButton(event.position) ?? false;
-      if (gestureCancel) {
-        // cancelRecord callback will call _removeRecordOverlay
-        _recordOverlayKey.currentState?.cancelRecord();
-      } else {
-        // stopRecord callback will call _removeRecordOverlay via onRecordFinish
-        _recordOverlayKey.currentState?.stopRecord();
+      final overlayState = _recordOverlayKey.currentState;
+      final overCancel = overlayState?.isPointerOverCancelButton(event.position) ?? false;
+      final overConvert = overlayState?.isPointerOverConvertButton(event.position) ?? false;
+      final action = recordPointerUpAction(
+        overCancel: overCancel,
+        overConvert: overConvert,
+      );
+      switch (action) {
+        case RecordPointerUpAction.cancel:
+          // cancelRecord callback will call _removeRecordOverlay.
+          overlayState?.cancelRecord();
+          break;
+        case RecordPointerUpAction.convert:
+          // Stop recording; the captured file is routed to the overlay's
+          // converting state machine in the onRecordFinish handler.
+          _pendingConvertRecord = true;
+          overlayState?.stopRecord();
+          break;
+        case RecordPointerUpAction.send:
+          // stopRecord callback will call _removeRecordOverlay via onRecordFinish.
+          overlayState?.stopRecord();
+          break;
       }
     }
   }
@@ -1239,7 +1396,7 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
                     child: Center(
                       child: GestureDetector(
                         onTap: _toggleVoiceMode,
-                        child: _isVoiceMode
+                        child: _inputMode == _InputMode.voice
                             ? SvgPicture.asset(
                                 'chat_assets/icon/keyboard.svg',
                                 package: 'tuikit_atomic_x',
@@ -1268,16 +1425,18 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
 
                 // Middle: Input field or "Hold to talk" button
                 Expanded(
-                  child: _isVoiceMode
+                  child: _inputMode == _InputMode.voice
                       ? _buildHoldToTalkButton(colorsTheme)
-                      : Container(
-                          constraints: const BoxConstraints(minHeight: 34),
-                          decoration: BoxDecoration(
-                            color: colorsTheme.textColorButtonDisabled,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: _buildInputTextField(colorsTheme: colorsTheme),
-                        ),
+                      : _inputMode == _InputMode.idle
+                          ? _buildIdleInputArea(colorsTheme)
+                          : Container(
+                              constraints: const BoxConstraints(minHeight: 34),
+                              decoration: BoxDecoration(
+                                color: colorsTheme.textColorButtonDisabled,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: _buildInputTextField(colorsTheme: colorsTheme),
+                            ),
                 ),
 
                 // Gap: 10pt between input field and emoji icon
@@ -1321,7 +1480,7 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
                 SizedBox(
                   height: 34,
                   child: Center(
-                    child: _showSendButton && !_isVoiceMode
+                    child: _showSendButton && _inputMode != _InputMode.voice
                         ? _buildSendButton(colorsTheme)
                         : widget.config.isShowMore
                             ? GestureDetector(
@@ -1347,17 +1506,20 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
     );
   }
 
-  /// Toggle between voice mode and text input mode
+  /// Toggle between voice mode and text input mode.
+  /// From text/idle → voice: dismiss keyboard and panels.
+  /// From voice → text: show keyboard.
   void _toggleVoiceMode() {
     setState(() {
-      _isVoiceMode = !_isVoiceMode;
-      if (_isVoiceMode) {
+      if (_inputMode != _InputMode.voice) {
         // Switching to voice mode: hide keyboard and panels
+        _inputMode = _InputMode.voice;
         _textEditingFocusNode.unfocus();
         _showEmojiPanel = false;
         _showMorePanel = false;
       } else {
         // Switching back to text mode: show keyboard
+        _inputMode = _InputMode.text;
         _textEditingFocusNode.requestFocus();
       }
     });
@@ -1370,7 +1532,7 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
       _isSwitchingPanel = true;
       _textEditingFocusNode.unfocus();
       setState(() {
-        _isVoiceMode = false;
+        _inputMode = _InputMode.text;
         _showEmojiPanel = true;
         _showMorePanel = false;
       });
@@ -1413,6 +1575,89 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
     );
   }
 
+  /// Build the idle-mode input area.
+  /// - Tap: switch to text mode and show keyboard (via GestureDetector to win arena over parent).
+  /// - Long press (pointer held > 200ms): start recording directly (stay in idle mode).
+  Widget _buildIdleInputArea(SemanticColorScheme colorsTheme) {
+    return GestureDetector(
+      onTap: () {
+        // Cancel any pending long-press timer
+        _idleLongPressTimer?.cancel();
+        _idleLongPressTimer = null;
+        // Flutter's TapGestureRecognizer has no time upper bound, so a long
+        // press that already triggered recording will still fire onTap when
+        // the pointer is released. Detect that here and stay in idle mode,
+        // otherwise we'd switch to text mode + pop the keyboard right after
+        // the user sent a voice message.
+        if (_idleLongPressHandled) {
+          _idleLongPressHandled = false;
+          return;
+        }
+        setState(() {
+          _showEmojiPanel = false;
+          _showMorePanel = false;
+          _inputMode = _InputMode.text;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _textEditingFocusNode.requestFocus();
+          }
+        });
+      },
+      child: Listener(
+        onPointerDown: (PointerDownEvent event) {
+          _isIdleLongPressing = false;
+          _idleLongPressHandled = false;
+          _idleLongPressTimer?.cancel();
+          _idleLongPressTimer = Timer(const Duration(milliseconds: 200), () {
+            _isIdleLongPressing = true;
+            _idleLongPressHandled = true;
+            _onStartRecording(event);
+          });
+        },
+        onPointerUp: (PointerUpEvent event) {
+          if (_isIdleLongPressing) {
+            _onStopRecording(event);
+            _isIdleLongPressing = false;
+          }
+          // Tap case is handled by GestureDetector.onTap above; the
+          // _idleLongPressHandled flag tells onTap whether to suppress
+          // the mode switch (long-press → recording path).
+        },
+        onPointerCancel: (PointerCancelEvent event) {
+          if (_isIdleLongPressing) {
+            _onRecordingPointerCancel(event);
+            _isIdleLongPressing = false;
+          } else {
+            _idleLongPressTimer?.cancel();
+            _idleLongPressTimer = null;
+          }
+        },
+        onPointerMove: (PointerMoveEvent event) {
+          if (_isIdleLongPressing) {
+            _recordOverlayKey.currentState?.updatePointerPosition(event.position);
+          }
+        },
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 34),
+          decoration: BoxDecoration(
+            color: colorsTheme.textColorButtonDisabled,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          child: Text(
+            atomicLocale.sendMessageOrHoldToTalk,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: FontScheme.caption1Regular.copyWith(
+              color: colorsTheme.textColorTertiary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildInputTextField({required SemanticColorScheme colorsTheme}) {
     return _MentionTextField(
       controller: _textEditingController,
@@ -1423,7 +1668,7 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
         setState(() {
           _showEmojiPanel = false;
           _showMorePanel = false;
-          _isVoiceMode = false;
+          _inputMode = _InputMode.text;
         });
       },
     );

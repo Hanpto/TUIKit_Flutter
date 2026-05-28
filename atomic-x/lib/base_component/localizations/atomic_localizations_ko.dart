@@ -1300,6 +1300,9 @@ class AtomicLocalizationsKo extends AtomicLocalizations {
   String get holdToTalk => '길게 눌러 말하기';
 
   @override
+  String get sendMessageOrHoldToTalk => '입력하거나 길게 눌러 말하기...';
+
+  @override
   String get releaseToSend => '놓으면 보내기';
 
   @override
@@ -1500,4 +1503,13 @@ class AtomicLocalizationsKo extends AtomicLocalizations {
   @override
   String get callInviteUserErrorOrInvalidCallParameters =>
       '사용자 초대 오류 또는 잘못된 통화 매개변수';
+
+  @override
+  String get releaseToConvert => '놓으면 텍스트로 변환';
+
+  @override
+  String get voiceToTextFailed => '텍스트를 인식하지 못했습니다';
+
+  @override
+  String get sendOriginalVoice => '원본 음성 보내기';
 }

@@ -460,6 +460,7 @@
         }
     },
     "holdToTalk": "按住说话",
+    "sendMessageOrHoldToTalk": "发消息或按住说话...",
     "releaseToSend": "松手发送",
     "releaseToCancel": "松手取消",
     "recordCountdownTips": "{seconds}s 后将停止录音",
@@ -531,5 +532,8 @@
     "callFailedToInitiateCallCheckLoginStatus": "发起通话失败，请检查登录状态后重试",
     "callFailedToInitiateOrJoinCall": "发起通话失败 / 加入通话失败",
     "callCurrentCallSupportsMax9Participants": "当前通话最多支持 9 人同时在线。",
-    "callInviteUserErrorOrInvalidCallParameters": "邀请用户错误或通话参数无效"
+    "callInviteUserErrorOrInvalidCallParameters": "邀请用户错误或通话参数无效",
+    "releaseToConvert": "松手转文字",
+    "voiceToTextFailed": "未识别到文字内容",
+    "sendOriginalVoice": "发送原语音"
 }
