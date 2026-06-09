@@ -13,7 +13,7 @@ import 'package:tencent_effect_flutter/uikit/model/te_ui_property.dart';
 
 enum BeautyLevel {
   A1_00, A1_01, A1_02, A1_03, A1_04, A1_05, A1_06,
-  S1_00, S1_01, S1_02, S1_03, S1_04, S1_07,
+  S1_00, S1_01, S1_02, S1_03, S1_04, S1_05, S1_06, S1_07,
 }
 
 const kTEBeautyService = 'TEBeautyService';
@@ -208,6 +208,35 @@ class TUIBeautyKit {
         config.setMotionRes(motions2DJson);
         config.setMotionRes(motions3DJson);
         config.setMotionRes(motionsGestureJson);
+        config.setSegmentationRes(segmentationJson);
+        break;
+      case BeautyLevel.S1_05:
+        config.setBeautyTemplateRes(beautyTemplateJson);
+        config.setBeautyRes(beautyJson);
+        config.setBeautyRes(beautyImageJson);
+        config.setBeautyRes(beautyShapeJson);
+        config.setBeautyRes(beautyMakeupJson);
+        config.setLutRes(lutJson);
+        config.setBeautyBodyRes(beautyBodyJson);
+        config.setMotionRes(motions2DJson);
+        config.setMotionRes(motions3DJson);
+        config.setMakeUpRes(makeupJson);
+        config.setLightMakeupRes(lightMakeupJson);
+        config.setSegmentationRes(segmentationJson);
+        break;
+      case BeautyLevel.S1_06:
+        config.setBeautyTemplateRes(beautyTemplateJson);
+        config.setBeautyRes(beautyJson);
+        config.setBeautyRes(beautyImageJson);
+        config.setBeautyRes(beautyShapeJson);
+        config.setBeautyRes(beautyMakeupJson);
+        config.setLutRes(lutJson);
+        config.setBeautyBodyRes(beautyBodyJson);
+        config.setMotionRes(motions2DJson);
+        config.setMotionRes(motions3DJson);
+        config.setMotionRes(motionsGestureJson);
+        config.setMakeUpRes(makeupJson);
+        config.setLightMakeupRes(lightMakeupJson);
         config.setSegmentationRes(segmentationJson);
         break;
       case BeautyLevel.S1_07:
