@@ -213,6 +213,9 @@ class AtomicLocalizationsAr extends AtomicLocalizations {
   String get weekdaySaturday => 'السبت';
 
   @override
+  String get yesterday => 'أمس';
+
+  @override
   String get userID => 'معرف المستخدم';
 
   @override
@@ -226,6 +229,12 @@ class AtomicLocalizationsAr extends AtomicLocalizations {
 
   @override
   String get recordAVideo => 'تسجيل فيديو';
+
+  @override
+  String get audioCall => 'مكالمة صوتية';
+
+  @override
+  String get videoCall => 'مكالمة فيديو';
 
   @override
   String get send => 'يرسل';
@@ -893,6 +902,9 @@ class AtomicLocalizationsAr extends AtomicLocalizations {
   String get waitAgreeFriend => 'في انتظار موافقة الصديق';
 
   @override
+  String get userNotExist => 'المستخدم غير موجود';
+
+  @override
   String get haveBeFriend => 'الشخص المطلوب هو بالفعل صديقك';
 
   @override
@@ -1525,6 +1537,25 @@ class AtomicLocalizationsAr extends AtomicLocalizations {
   @override
   String get callInviteUserErrorOrInvalidCallParameters =>
       'خطأ في دعوة المستخدم أو معلمات المكالمة غير صالحة';
+
+  @override
+  String get backToQuotePosition => 'العودة إلى موضع الاقتباس';
+
+  @override
+  String get quotedMessageRevoked => 'تم استدعاء المحتوى المقتبس';
+
+  @override
+  String get quotedMessageNotFound => 'المحتوى المقتبس غير متوفر';
+
+  @override
+  String get quotedOriginalMessageUnreachable =>
+      'تعذر تحديد موقع الرسالة الأصلية';
+
+  @override
+  String get messageTypeMerged => '[سجلات الدردشة]';
+
+  @override
+  String get messageTypeUnknown => '[رسالة]';
 
   @override
   String get releaseToConvert => 'حرر للتحويل إلى نص';

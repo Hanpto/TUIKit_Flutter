@@ -213,6 +213,9 @@ class AtomicLocalizationsKo extends AtomicLocalizations {
   String get weekdaySaturday => '토';
 
   @override
+  String get yesterday => '어제';
+
+  @override
   String get userID => '사용자 ID';
 
   @override
@@ -226,6 +229,12 @@ class AtomicLocalizationsKo extends AtomicLocalizations {
 
   @override
   String get recordAVideo => '동영상';
+
+  @override
+  String get audioCall => '음성 통화';
+
+  @override
+  String get videoCall => '영상 통화';
 
   @override
   String get send => '보내다';
@@ -880,6 +889,9 @@ class AtomicLocalizationsKo extends AtomicLocalizations {
   String get waitAgreeFriend => '친구들의 검토와 승인을 기다리는 중';
 
   @override
+  String get userNotExist => '해당 사용자가 존재하지 않습니다.';
+
+  @override
   String get haveBeFriend => '그 사람은 이미 당신의 친구입니다.';
 
   @override
@@ -1503,6 +1515,24 @@ class AtomicLocalizationsKo extends AtomicLocalizations {
   @override
   String get callInviteUserErrorOrInvalidCallParameters =>
       '사용자 초대 오류 또는 잘못된 통화 매개변수';
+
+  @override
+  String get backToQuotePosition => '인용 위치로 돌아가기';
+
+  @override
+  String get quotedMessageRevoked => '인용 내용이 회수되었습니다';
+
+  @override
+  String get quotedMessageNotFound => '인용 내용을 찾을 수 없습니다';
+
+  @override
+  String get quotedOriginalMessageUnreachable => '원본 메시지를 찾을 수 없습니다';
+
+  @override
+  String get messageTypeMerged => '[대화 기록]';
+
+  @override
+  String get messageTypeUnknown => '[메시지]';
 
   @override
   String get releaseToConvert => '놓으면 텍스트로 변환';

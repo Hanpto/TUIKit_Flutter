@@ -95,9 +95,9 @@ class ThemeState extends ChangeNotifier {
     }
   }
 
-  void _loadThemeFromLocal() {
+  Future<void> _loadThemeFromLocal() async {
     try {
-      final themeString = StorageUtil.get(themeKey) as String?;
+      final themeString = await StorageUtil.get(themeKey) as String?;
       if (themeString != null) {
         final themeJson = jsonDecode(themeString) as Map<String, dynamic>;
         final modeIndex = themeJson['mode'] as int;
@@ -107,6 +107,7 @@ class ThemeState extends ChangeNotifier {
           type: ThemeType.values[modeIndex],
           primaryColor: primaryColor,
         );
+        notifyListeners();
         return;
       }
     } catch (e) {
@@ -114,6 +115,7 @@ class ThemeState extends ChangeNotifier {
     }
 
     _loadThemeFromAppBuilder();
+    notifyListeners();
   }
 
   void _loadThemeFromAppBuilder() {

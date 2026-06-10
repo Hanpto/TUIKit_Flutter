@@ -299,8 +299,8 @@ class AtomicAlertDialog extends StatefulWidget {
     return dialogId;
   }
 
-  static void setVisable(String dialogId, bool visiable) {
-    DialogOverlayManager.setVisable(dialogId, visiable);
+  static void setVisible(String dialogId, bool visible) {
+    DialogOverlayManager.setVisible(dialogId, visible);
   }
 
   static void dismiss(String dialogId) {
@@ -550,9 +550,9 @@ class _AtomicAlertDialogState extends State<AtomicAlertDialog> {
 
 class OverlayEntryWrapper {
   final OverlayEntry overlayEntry;
-  final ValueNotifier<bool> isVisable;
+  final ValueNotifier<bool> isVisible;
 
-  OverlayEntryWrapper({required this.overlayEntry, required this.isVisable});
+  OverlayEntryWrapper({required this.overlayEntry, required this.isVisible});
 }
 
 class DialogOverlayManager {
@@ -614,19 +614,19 @@ class DialogOverlayManager {
     }
 
     overlay.insert(overlayEntry);
-    _overlays[dialogId] = OverlayEntryWrapper(overlayEntry: overlayEntry, isVisable: isVisable);
+    _overlays[dialogId] = OverlayEntryWrapper(overlayEntry: overlayEntry, isVisible: isVisable);
   }
 
-  static void setVisable(String dialogId, bool visiable) {
+  static void setVisible(String dialogId, bool visible) {
     final entryWrapper = _overlays[dialogId];
-    entryWrapper?.isVisable.value = visiable;
+    entryWrapper?.isVisible.value = visible;
   }
 
   static void dismiss(String dialogId) {
     final OverlayEntryWrapper? entryWrapper = _overlays[dialogId];
     if (entryWrapper != null) {
       entryWrapper.overlayEntry.remove();
-      entryWrapper.isVisable.dispose();
+      entryWrapper.isVisible.dispose();
       _overlays.remove(dialogId);
     }
   }
@@ -634,7 +634,7 @@ class DialogOverlayManager {
   static void dismissAll() {
     for (var entryWrapper in _overlays.values) {
       entryWrapper.overlayEntry.remove();
-      entryWrapper.isVisable.dispose();
+      entryWrapper.isVisible.dispose();
     }
     _overlays.clear();
   }

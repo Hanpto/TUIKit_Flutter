@@ -1,11 +1,17 @@
-# chat_client
+# TUIKit Flutter Chat UI component library
 
-A new Flutter project.
+## See [TUIKit Overview](https://cloud.tencent.com/document/product/269/125903) for more details.
 
-## Getting Started
+## Third-party Libraries
 
-For help getting started with Flutter development, view the online
-[documentation](https://flutter.dev/).
+This project uses modified versions of:
 
-For instructions integrating Flutter modules to your existing applications,
-see the [add-to-app documentation](https://flutter.dev/to/add-to-app).
+- **azlistview** - BSD 3-Clause License
+- **extended_text** - MIT License
+- **extended_text_field** - MIT License
+- **extended_text_library** - MIT License
+- **flutter_swipe_action_cell** - Apache-2.0 license
+- **lpinyin** - BSD 2-Clause License
+- **scroll_to_index** - MIT License
+- **scrollable_positioned_list** - BSD 3-Clause License
+- **visibility_detector** - BSD 3-Clause License

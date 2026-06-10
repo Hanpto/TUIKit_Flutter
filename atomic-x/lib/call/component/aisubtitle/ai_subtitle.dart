@@ -3,10 +3,8 @@ import 'dart:convert';
 import 'package:atomic_x_core/impl/common/log.dart';
 import 'package:flutter/material.dart';
 import 'package:atomic_x_core/atomicxcore.dart';
-import 'package:tencent_rtc_sdk/bindings/trtc_cloud_struct.dart';
 import 'package:tencent_rtc_sdk/trtc_cloud.dart';
 import 'package:tencent_rtc_sdk/trtc_cloud_listener.dart';
-import 'package:tuikit_atomic_x/call/common/utils/logger.dart';
 
 class AISubtitle extends StatefulWidget {
   final String userId;

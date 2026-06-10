@@ -49,7 +49,7 @@ class AlertHandler {
 
   void setContentVisible(bool show) {
     if (handID != null) {
-      AtomicAlertDialog.setVisable(handID!, show);
+      AtomicAlertDialog.setVisible(handID!, show);
       return;
     }
     _visible.value = show;

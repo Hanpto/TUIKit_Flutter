@@ -1,4 +1,4 @@
-import 'package:tuikit_atomic_x/atomicx.dart' hide AlertDialog;
+import 'package:tencent_chat_uikit/tencent_chat_uikit.dart' hide AlertDialog;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -119,7 +119,6 @@ class _ProfilePageState extends State<ProfilePage> {
       );
 
       await _loginStore.setSelfInfo(userInfo: updatedProfile);
-      // 不需要手动调用 setState，Consumer 会自动重建 UI
     }
   }
 
@@ -208,10 +207,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 },
                 child: Text(
                   currentUser?.nickname ?? currentUser?.userID ?? '',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: FontScheme.body2Bold,
                 ),
               ),
             ],

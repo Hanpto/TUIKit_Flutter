@@ -1,6 +1,4 @@
-import 'package:tuikit_atomic_x/atomicx.dart' hide Badge;
-import 'package:tencent_chat_uikit/contacts_page.dart';
-import 'package:tencent_chat_uikit/conversations_page.dart';
+import 'package:tencent_chat_uikit/tencent_chat_uikit.dart' hide Badge;
 import 'package:flutter/material.dart';
 import 'package:application/src/chat/settings_page.dart';
 import 'package:application/src/chat/tab_widget.dart';
@@ -19,16 +17,13 @@ class _ChatMainWidgetState extends State<ChatMainWidget> {
   late List<_NavItem> _navItems;
   int totalUnreadCount = 0;
   late List<Widget> _pages;
-  late final VoidCallback _conversationListChangedListener;
 
   @override
   void initState() {
     super.initState();
-    _conversationListChangedListener = _onConversationListChanged;
     conversationListStore = ConversationListStore.create();
-    conversationListStore.addListener(_conversationListChangedListener);
-    conversationListStore.getConversationTotalUnreadCount();
-    
+    conversationListStore.state.totalUnreadCount.addListener(_onConversationListChanged);
+
     _pages = [
       _KeepAlivePage(child: ConversationsPage(onBackPressed: _onBackPressed)),
       _KeepAlivePage(child: ContactsPage(onBackPressed: _onBackPressed)),
@@ -42,13 +37,13 @@ class _ChatMainWidgetState extends State<ChatMainWidget> {
 
   @override
   void dispose() {
-    conversationListStore.removeListener(_conversationListChangedListener);
+    conversationListStore.state.totalUnreadCount.removeListener(_onConversationListChanged);
     super.dispose();
   }
 
   void _onConversationListChanged() {
     setState(() {
-      totalUnreadCount = conversationListStore.conversationListState.totalUnreadCount;
+      totalUnreadCount = conversationListStore.state.totalUnreadCount.value;
     });
   }
 

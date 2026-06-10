@@ -478,6 +478,12 @@ abstract class AtomicLocalizations {
   /// **'Sat'**
   String get weekdaySaturday;
 
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
   /// No description provided for @userID.
   ///
   /// In en, this message translates to:
@@ -507,6 +513,18 @@ abstract class AtomicLocalizations {
   /// In en, this message translates to:
   /// **'Record a video'**
   String get recordAVideo;
+
+  /// No description provided for @audioCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice call'**
+  String get audioCall;
+
+  /// No description provided for @videoCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Video call'**
+  String get videoCall;
 
   /// No description provided for @send.
   ///
@@ -1798,6 +1816,12 @@ abstract class AtomicLocalizations {
   /// **'Request sent'**
   String get waitAgreeFriend;
 
+  /// No description provided for @userNotExist.
+  ///
+  /// In en, this message translates to:
+  /// **'User does not exist.'**
+  String get userNotExist;
+
   /// No description provided for @haveBeFriend.
   ///
   /// In en, this message translates to:
@@ -2985,6 +3009,42 @@ abstract class AtomicLocalizations {
   /// In en, this message translates to:
   /// **'Invite user error or invalid call parameters'**
   String get callInviteUserErrorOrInvalidCallParameters;
+
+  /// No description provided for @backToQuotePosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to quote'**
+  String get backToQuotePosition;
+
+  /// No description provided for @quotedMessageRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Quoted content recalled'**
+  String get quotedMessageRevoked;
+
+  /// No description provided for @quotedMessageNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Quoted content unavailable'**
+  String get quotedMessageNotFound;
+
+  /// No description provided for @quotedOriginalMessageUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to locate the original message'**
+  String get quotedOriginalMessageUnreachable;
+
+  /// No description provided for @messageTypeMerged.
+  ///
+  /// In en, this message translates to:
+  /// **'[Chat Records]'**
+  String get messageTypeMerged;
+
+  /// No description provided for @messageTypeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'[Message]'**
+  String get messageTypeUnknown;
 
   /// No description provided for @releaseToConvert.
   ///

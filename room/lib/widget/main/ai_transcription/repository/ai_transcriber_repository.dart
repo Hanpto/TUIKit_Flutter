@@ -82,7 +82,7 @@ class AITranscriberRepository extends ChangeNotifier {
 
   // Internal
 
-  final AITranscriberStore _transcriberStore = AITranscriberStore.shared;
+  late final AITranscriberStore _transcriberStore;
   TranscriberConfig? _currentConfig;
   VoidCallback? _messageListListener;
   late final AITranscriberStoreListener _transcriberListener;
@@ -91,17 +91,16 @@ class AITranscriberRepository extends ChangeNotifier {
   TranscriberConfig? get currentConfig => _currentConfig;
 
   AITranscriberRepository({required this.roomID}) {
+    _transcriberStore = AITranscriberStore.create(roomID);
     _transcriberListener = AITranscriberStoreListener(
       onRealtimeTranscriberStarted: (eventRoomID, transcriberRobotID) {
         if (roomID == eventRoomID) {
           _isTranscriptionStart = true;
-          notifyListeners();
         }
       },
       onRealtimeTranscriberStopped: (eventRoomID, transcriberRobotID, reason) {
         if (roomID == eventRoomID) {
           _isTranscriptionStart = false;
-          notifyListeners();
         }
       },
     );
@@ -270,7 +269,8 @@ class AITranscriberRepository extends ChangeNotifier {
       if (existingData != null) {
         if (groupData == existingData) continue;
         _subtitleDataMap[groupId] = groupData;
-        _eventController.add(groupData.isCompleted ? AISubtitleDataCompleted(groupData) : AISubtitleDataUpdated(groupData));
+        _eventController
+            .add(groupData.isCompleted ? AISubtitleDataCompleted(groupData) : AISubtitleDataUpdated(groupData));
       } else {
         _subtitleDataMap[groupId] = groupData;
         _orderedSegmentIds.add(groupId);
@@ -301,9 +301,9 @@ class AITranscriberRepository extends ChangeNotifier {
     for (final message in filtered) {
       final data = _convertToSubtitleData(message);
 
-      if (groups.isNotEmpty
-          && groups.last.speakerUserId == data.speakerUserId
-          && (data.timestamp - groups.last.timestamp).abs() <= 60) {
+      if (groups.isNotEmpty &&
+          groups.last.speakerUserId == data.speakerUserId &&
+          (data.timestamp - groups.last.timestamp).abs() <= 60) {
         // Merge into existing group
         final lastGroup = groups.last;
         final mergedTranslationText = data.translationText.isEmpty

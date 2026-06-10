@@ -19,19 +19,19 @@ class ToastTypeHelper {
   static String getIconName(ToastType type) {
     switch (type) {
       case ToastType.loading:
-        return 'chat_assets/icon/loading-blue.png';
+        return 'assets/loading-blue.png';
       case ToastType.info:
-        return 'chat_assets/icon/info-circle-filled.svg';
+        return 'assets/info-circle-filled.svg';
       case ToastType.success:
-        return 'chat_assets/icon/check-circle-filled.svg';
+        return 'assets/check-circle-filled.svg';
       case ToastType.warning:
-        return 'chat_assets/icon/error-circle-filled.svg';
+        return 'assets/error-circle-filled.svg';
       case ToastType.error:
-        return 'chat_assets/icon/error-circle-filled.svg';
+        return 'assets/error-circle-filled.svg';
       case ToastType.help:
-        return 'chat_assets/icon/help-circle-filled.svg';
+        return 'assets/help-circle-filled.svg';
       default:
-        return 'chat_assets/icon/info-circle-filled.svg';
+        return 'assets/info-circle-filled.svg';
     }
   }
 

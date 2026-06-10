@@ -105,70 +105,68 @@ class CallGridWaitingWidget extends StatelessWidget {
 class _CallerInfoWidget extends StatefulWidget {
   final String userId;
 
-  const _CallerInfoWidget({Key? key, required this.userId}) : super(key: key);
+  const _CallerInfoWidget({super.key, required this.userId});
 
   @override
   State<_CallerInfoWidget> createState() => _CallerInfoWidgetState();
 }
 
 class _CallerInfoWidgetState extends State<_CallerInfoWidget> {
-  String displayName = "";
-  String avatarUrl = Constants.defaultAvatar;
-  ContactListStore contactListStore = ContactListStore.create();
+  ContactInfo? _contactInfo;
 
   @override
   void initState() {
-    contactListStore.addListener(() {
-      displayName = contactListStore.contactListState.addFriendInfo?.title ?? "";
-      avatarUrl = contactListStore.contactListState.addFriendInfo?.avatarURL ?? Constants.defaultAvatar;
-      if (mounted) setState(() {});
-    });
-    contactListStore.fetchUserInfo(userID: widget.userId);
     super.initState();
+    _loadContactInfo();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    contactListStore.dispose();
+  Future<void> _loadContactInfo() async {
+    final handler = await ContactStore.shared.getContactInfo(userIDList: [widget.userId]);
+    if (handler.isSuccess && handler.contactInfoList.isNotEmpty && mounted) {
+      setState(() {
+        _contactInfo = handler.contactInfoList.first;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final displayName = _contactInfo?.nickname ?? "";
+    final avatarUrl = _contactInfo?.avatarURL ?? Constants.defaultAvatar;
+
     return Column(
       children: [
         Container(
           margin: const EdgeInsets.only(top: 150),
           height: 120,
           width: 120,
-          clipBehavior: Clip.hardEdge,
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(15)),
-          ),
-          child: Image(
-            image: NetworkImage(
-              StringStream.makeNull(
-                avatarUrl,
-                Constants.defaultAvatar,
+              clipBehavior: Clip.hardEdge,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(15)),
+              ),
+              child: Image(
+                image: NetworkImage(
+                  StringStream.makeNull(
+                    avatarUrl,
+                    Constants.defaultAvatar,
+                  ),
+                ),
+                fit: BoxFit.cover,
+                errorBuilder: (ctx, err, stackTrace) => Image.asset(
+                  'call_assets/user_icon.png',
+                  package: 'tuikit_atomic_x',
+                ),
               ),
             ),
-            fit: BoxFit.cover,
-            errorBuilder: (ctx, err, stackTrace) => Image.asset(
-              'call_assets/user_icon.png',
-              package: 'tuikit_atomic_x',
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Text(
+                displayName,
+                textScaleFactor: 1.0,
+                style: const TextStyle(fontSize: 24, color: CallColors.colorG7),
+              ),
             ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Text(
-            displayName,
-            textScaleFactor: 1.0,
-            style: const TextStyle(fontSize: 24, color: CallColors.colorG7,),
-          ),
-        ),
-      ],
-    );
+          ],
+        );
   }
-
 }

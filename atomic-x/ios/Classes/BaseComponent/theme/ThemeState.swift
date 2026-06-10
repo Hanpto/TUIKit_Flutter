@@ -45,7 +45,7 @@ public class ThemeState: ObservableObject {
     private var cachedColorScheme: SemanticColorScheme?
     private var cachedThemeConfig: ThemeConfig?
 
-    init() {
+    public init() {
         loadTheme()
         setupSystemThemeObserver()
     }

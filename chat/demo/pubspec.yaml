@@ -49,6 +49,9 @@ dependencies:
     path: ../../call
   tencent_cloud_chat_push: ^8.8.7357
 
+dependency_overrides:
+  tencent_cloud_chat_sdk: ^9.0.7652
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

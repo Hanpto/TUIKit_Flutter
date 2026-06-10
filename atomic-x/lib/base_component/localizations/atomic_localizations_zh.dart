@@ -213,6 +213,9 @@ class AtomicLocalizationsZh extends AtomicLocalizations {
   String get weekdaySaturday => '周六';
 
   @override
+  String get yesterday => '昨天';
+
+  @override
   String get userID => '用户ID';
 
   @override
@@ -226,6 +229,12 @@ class AtomicLocalizationsZh extends AtomicLocalizations {
 
   @override
   String get recordAVideo => '摄像';
+
+  @override
+  String get audioCall => '语音通话';
+
+  @override
+  String get videoCall => '视频通话';
 
   @override
   String get send => '发送';
@@ -879,6 +888,9 @@ class AtomicLocalizationsZh extends AtomicLocalizations {
   String get waitAgreeFriend => '等待好友审核同意';
 
   @override
+  String get userNotExist => '该用户不存在';
+
+  @override
   String get haveBeFriend => '对方已是您的好友';
 
   @override
@@ -1497,6 +1509,24 @@ class AtomicLocalizationsZh extends AtomicLocalizations {
 
   @override
   String get callInviteUserErrorOrInvalidCallParameters => '邀请用户错误或通话参数无效';
+
+  @override
+  String get backToQuotePosition => '回到引用位置';
+
+  @override
+  String get quotedMessageRevoked => '引用内容已撤回';
+
+  @override
+  String get quotedMessageNotFound => '无法找到引用内容';
+
+  @override
+  String get quotedOriginalMessageUnreachable => '无法定位到原消息';
+
+  @override
+  String get messageTypeMerged => '[合并消息]';
+
+  @override
+  String get messageTypeUnknown => '[消息]';
 
   @override
   String get releaseToConvert => '松手转文字';
@@ -1717,6 +1747,9 @@ class AtomicLocalizationsZhHans extends AtomicLocalizationsZh {
   String get weekdaySaturday => '周六';
 
   @override
+  String get yesterday => '昨天';
+
+  @override
   String get userID => '用户ID';
 
   @override
@@ -1730,6 +1763,12 @@ class AtomicLocalizationsZhHans extends AtomicLocalizationsZh {
 
   @override
   String get recordAVideo => '摄像';
+
+  @override
+  String get audioCall => '语音通话';
+
+  @override
+  String get videoCall => '视频通话';
 
   @override
   String get send => '发送';
@@ -2383,6 +2422,9 @@ class AtomicLocalizationsZhHans extends AtomicLocalizationsZh {
   String get waitAgreeFriend => '等待好友审核同意';
 
   @override
+  String get userNotExist => '该用户不存在';
+
+  @override
   String get haveBeFriend => '对方已是您的好友';
 
   @override
@@ -3003,6 +3045,24 @@ class AtomicLocalizationsZhHans extends AtomicLocalizationsZh {
   String get callInviteUserErrorOrInvalidCallParameters => '邀请用户错误或通话参数无效';
 
   @override
+  String get backToQuotePosition => '回到引用位置';
+
+  @override
+  String get quotedMessageRevoked => '引用内容已撤回';
+
+  @override
+  String get quotedMessageNotFound => '无法找到引用内容';
+
+  @override
+  String get quotedOriginalMessageUnreachable => '无法定位到原消息';
+
+  @override
+  String get messageTypeMerged => '[合并消息]';
+
+  @override
+  String get messageTypeUnknown => '[消息]';
+
+  @override
   String get releaseToConvert => '松手转文字';
 
   @override
@@ -3221,6 +3281,9 @@ class AtomicLocalizationsZhHant extends AtomicLocalizationsZh {
   String get weekdaySaturday => '週六';
 
   @override
+  String get yesterday => '昨天';
+
+  @override
   String get userID => '用戶ID';
 
   @override
@@ -3234,6 +3297,12 @@ class AtomicLocalizationsZhHant extends AtomicLocalizationsZh {
 
   @override
   String get recordAVideo => '錄製';
+
+  @override
+  String get audioCall => '語音通話';
+
+  @override
+  String get videoCall => '視訊通話';
 
   @override
   String get send => '傳送';
@@ -3887,6 +3956,9 @@ class AtomicLocalizationsZhHant extends AtomicLocalizationsZh {
   String get waitAgreeFriend => '等待好友審核同意';
 
   @override
+  String get userNotExist => '該用戶不存在';
+
+  @override
   String get haveBeFriend => '對方已是您的好友';
 
   @override
@@ -4505,6 +4577,24 @@ class AtomicLocalizationsZhHant extends AtomicLocalizationsZh {
 
   @override
   String get callInviteUserErrorOrInvalidCallParameters => '邀請用戶錯誤或通話參數無效';
+
+  @override
+  String get backToQuotePosition => '回到引用位置';
+
+  @override
+  String get quotedMessageRevoked => '引用內容已撤回';
+
+  @override
+  String get quotedMessageNotFound => '無法找到引用內容';
+
+  @override
+  String get quotedOriginalMessageUnreachable => '無法定位到原消息';
+
+  @override
+  String get messageTypeMerged => '[合併消息]';
+
+  @override
+  String get messageTypeUnknown => '[消息]';
 
   @override
   String get releaseToConvert => '鬆手轉文字';

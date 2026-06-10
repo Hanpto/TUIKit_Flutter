@@ -1,4 +1,4 @@
-import 'package:tuikit_atomic_x/atomicx.dart';
+import 'package:tencent_chat_uikit/tencent_chat_uikit.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

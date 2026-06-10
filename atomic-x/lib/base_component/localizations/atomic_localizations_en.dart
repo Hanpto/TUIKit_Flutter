@@ -213,6 +213,9 @@ class AtomicLocalizationsEn extends AtomicLocalizations {
   String get weekdaySaturday => 'Sat';
 
   @override
+  String get yesterday => 'Yesterday';
+
+  @override
   String get userID => 'User ID';
 
   @override
@@ -226,6 +229,12 @@ class AtomicLocalizationsEn extends AtomicLocalizations {
 
   @override
   String get recordAVideo => 'Record a video';
+
+  @override
+  String get audioCall => 'Voice call';
+
+  @override
+  String get videoCall => 'Video call';
 
   @override
   String get send => 'Send';
@@ -891,6 +900,9 @@ class AtomicLocalizationsEn extends AtomicLocalizations {
   String get waitAgreeFriend => 'Request sent';
 
   @override
+  String get userNotExist => 'User does not exist.';
+
+  @override
   String get haveBeFriend => 'You two are already contacts of each other.';
 
   @override
@@ -1531,6 +1543,25 @@ class AtomicLocalizationsEn extends AtomicLocalizations {
   @override
   String get callInviteUserErrorOrInvalidCallParameters =>
       'Invite user error or invalid call parameters';
+
+  @override
+  String get backToQuotePosition => 'Back to quote';
+
+  @override
+  String get quotedMessageRevoked => 'Quoted content recalled';
+
+  @override
+  String get quotedMessageNotFound => 'Quoted content unavailable';
+
+  @override
+  String get quotedOriginalMessageUnreachable =>
+      'Unable to locate the original message';
+
+  @override
+  String get messageTypeMerged => '[Chat Records]';
+
+  @override
+  String get messageTypeUnknown => '[Message]';
 
   @override
   String get releaseToConvert => 'Release to convert';

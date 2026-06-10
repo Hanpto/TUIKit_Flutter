@@ -1,9 +1,12 @@
 package io.trtc.tuikit.atomicx.albumpicker
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -12,8 +15,10 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.trtc.tuikit.atomicx.albumpicker.*
 import io.trtc.tuikit.atomicx.basecomponent.utils.ContextProvider
-import io.trtc.tuikit.atomicx.messageinput.utils.FileUtils
+import io.trtc.tuikit.atomicx.utils.FileUtils
 import io.trtc.tuikit.albumpickercore.api.CompressQuality
+import java.io.File
+import java.io.FileOutputStream
 import java.util.concurrent.Executors
 
 /// Bridges Flutter method calls to the AlbumPicker AAR library,
@@ -163,6 +168,12 @@ class AlbumPickerHandler(
                 AlbumPickerHostActivity.currentInstance?.finish()
 
                 executor.execute {
+                    for (media in pickedAlbumMedias) {
+                        if (media.videoThumbnailPath == null) {
+                            media.videoThumbnailPath = generateThumbnailForMedia(media)
+                        }
+                    }
+
                     try {
                         val event = mutableMapOf<String, Any>(
                             "type" to "onPickConfirm",
@@ -219,6 +230,74 @@ class AlbumPickerHandler(
                 AlbumPickerHostActivity.currentInstance?.finish()
                 completeSession()
             }
+        }
+    }
+
+    // MARK: - Thumbnail Generation
+
+    private fun generateThumbnailForMedia(albumMedia: AlbumMedia): String? {
+        val context = ContextProvider.appContext
+        val id = albumMedia.id.toLong()
+
+        val uri = if (!albumMedia.mediaPath.isNullOrEmpty()) {
+            Uri.fromFile(File(albumMedia.mediaPath!!))
+        } else {
+            albumMedia.uri
+        } ?: return null
+
+        return try {
+            when (albumMedia.mediaType) {
+                AlbumMediaType.VIDEO -> generateVideoThumbnail(context, uri, id)
+                AlbumMediaType.IMAGE -> generateImageThumbnail(context, uri, id)
+                else -> null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "generateThumbnailForMedia failed", e)
+            null
+        }
+    }
+
+    private fun generateImageThumbnail(context: android.content.Context, uri: Uri, id: Long): String? {
+        val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        context.contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, boundsOptions)
+        }
+
+        val maxEdge = maxOf(boundsOptions.outWidth, boundsOptions.outHeight)
+        val sampleSize = if (maxEdge > 0) maxOf(1, maxEdge / 540) else 1
+
+        val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        val bitmap = context.contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, decodeOptions)
+        } ?: return null
+
+        return saveThumbnailToCache(context, bitmap, id)
+    }
+
+    private fun generateVideoThumbnail(context: android.content.Context, uri: Uri, id: Long): String? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(context, uri)
+            val bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                ?: return null
+            saveThumbnailToCache(context, bitmap, id)
+        } finally {
+            try { retriever.release() } catch (_: Exception) {}
+        }
+    }
+
+    private fun saveThumbnailToCache(context: android.content.Context, bitmap: Bitmap, id: Long): String? {
+        val cacheDir = File(context.cacheDir, "album_picker_thumbnails").apply { mkdirs() }
+        val file = File(cacheDir, "${id}_${System.currentTimeMillis()}_thumb.jpg")
+        return try {
+            FileOutputStream(file).use { fos ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos)
+            }
+            bitmap.recycle()
+            file.absolutePath
+        } catch (e: Exception) {
+            Log.e(TAG, "saveThumbnailToCache failed", e)
+            null
         }
     }
 

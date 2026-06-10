@@ -26,7 +26,7 @@ class TUICallKitImpl implements TUICallKit {
   IosPipFeature? pictureInPictureFeature;
   late final voIPDataSyncHandler;
   late final fcmDataSyncHandler;
-  final contactListStore = ContactListStore.create();
+  final contactStore = ContactStore.shared;
   bool isNotificationPreparing = false;
   late CallEventListener callEventListener = CallEventListener(
     onCallStarted: (callId, mediaType) async {
@@ -269,22 +269,7 @@ class TUICallKitImpl implements TUICallKit {
   }
 
   void _subscribeState() {
-    contactListStore.addListener(() async {
-      final activeCall = CallStore.shared.state.activeCall.value;
-      final selfInfo = CallStore.shared.state.selfInfo.value;
-      if (isNotificationPreparing && activeCall.inviterId.isNotEmpty) {
-        if (contactListStore.contactListState.addFriendInfo?.contactID == activeCall.inviterId
-            && activeCall.inviterId != selfInfo.id && activeCall.mediaType != null) {
-          fcmDataSyncHandler.openNotificationView(
-            contactListStore.contactListState.addFriendInfo?.title ?? "",
-            contactListStore.contactListState.addFriendInfo?.avatarURL ?? "",
-            activeCall.mediaType!,
-          );
-        }
-      }
-    });
-
-    CallStore.shared.state.selfInfo.addListener(() {
+    CallStore.shared.state.selfInfo.addListener(() async {
       final activeCall = CallStore.shared.state.activeCall.value;
       if (activeCall.mediaType == null) {
         return;
@@ -345,7 +330,18 @@ class TUICallKitImpl implements TUICallKit {
 
     final activeCall = CallStore.shared.state.activeCall.value;
     if (AppLifecycle.instance.isBackground && activeCall.inviterId.isNotEmpty) {
-      contactListStore.fetchUserInfo(userID: activeCall.inviterId);
+      final handler = await contactStore.getContactInfo(userIDList: [activeCall.inviterId]);
+      if (handler.isSuccess && handler.contactInfoList.isNotEmpty) {
+        final selfInfo = CallStore.shared.state.selfInfo.value;
+        final contactInfo = handler.contactInfoList.first;
+        if (activeCall.inviterId != selfInfo.id && activeCall.mediaType != null) {
+          fcmDataSyncHandler.openNotificationView(
+            contactInfo.nickname ?? "",
+            contactInfo.avatarURL ?? "",
+            activeCall.mediaType!,
+          );
+        }
+      }
       isNotificationPreparing = true;
     }
 

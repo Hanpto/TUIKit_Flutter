@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide IconButton;
 import 'package:provider/provider.dart';
-import 'package:tuikit_atomic_x/atomicx.dart' hide AlertDialog;
+import 'package:tencent_chat_uikit/tencent_chat_uikit.dart' hide AlertDialog;
 
 import 'profile_page.dart';
 

@@ -1,4 +1,4 @@
-package io.trtc.tuikit.atomicx.messageinput.utils
+package io.trtc.tuikit.atomicx.utils
 
 import android.content.ContentResolver
 import android.content.Context

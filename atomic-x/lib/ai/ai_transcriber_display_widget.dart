@@ -26,8 +26,11 @@ class AITranscriberDisplayWidgetState extends State<AITranscriberDisplayWidget> 
   int _lastMessageCount = 0;
   bool _isAtBottom = true;
 
-  ValueListenable<List<TranscriberMessage>> get _messageListenable {
-    return AITranscriberStore.shared.transcriberState.realtimeMessageList;
+  AITranscriberStore? _transcriberStore;
+  String _currentCallID = '';
+
+  ValueListenable<List<TranscriberMessage>>? get _messageListenable {
+    return _transcriberStore?.transcriberState.realtimeMessageList;
   }
 
   @override
@@ -35,8 +38,8 @@ class AITranscriberDisplayWidgetState extends State<AITranscriberDisplayWidget> 
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScrollChanged);
-    _messageListenable.addListener(_onMessageListChanged);
-    _lastMessageCount = _messageListenable.value.length;
+    CallStore.shared.state.activeCall.addListener(_onCallIdChanged);
+    _onCallIdChanged();
     _scrollToBottom();
   }
 
@@ -44,9 +47,32 @@ class AITranscriberDisplayWidgetState extends State<AITranscriberDisplayWidget> 
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.removeListener(_onScrollChanged);
-    _messageListenable.removeListener(_onMessageListChanged);
+    CallStore.shared.state.activeCall.removeListener(_onCallIdChanged);
+    _messageListenable?.removeListener(_onMessageListChanged);
     _scrollController.dispose();
+    _transcriberStore = null;
+    _currentCallID = '';
     super.dispose();
+  }
+
+  void _onCallIdChanged() {
+    final callId = CallStore.shared.state.activeCall.value.callId;
+    if (callId.isEmpty) {
+      _messageListenable?.removeListener(_onMessageListChanged);
+      _currentCallID = '';
+      _transcriberStore = null;
+      setState(() {});
+      return;
+    }
+    if (_currentCallID != callId) {
+      _messageListenable?.removeListener(_onMessageListChanged);
+      _currentCallID = callId;
+      _transcriberStore = AITranscriberStore.create(callId);
+      _messageListenable?.addListener(_onMessageListChanged);
+      _lastMessageCount = _messageListenable?.value.length ?? 0;
+      _scrollToBottom();
+      setState(() {});
+    }
   }
 
   @override
@@ -71,7 +97,7 @@ class AITranscriberDisplayWidgetState extends State<AITranscriberDisplayWidget> 
   }
 
   void _onMessageListChanged() {
-    final messages = _messageListenable.value;
+    final messages = _messageListenable?.value ?? [];
     final hasNewMessage = messages.length != _lastMessageCount;
     _lastMessageCount = messages.length;
     
@@ -100,8 +126,12 @@ class AITranscriberDisplayWidgetState extends State<AITranscriberDisplayWidget> 
 
   @override
   Widget build(BuildContext context) {
+    final listenable = _messageListenable;
+    if (listenable == null) {
+      return _buildSubtitleContainer(context, []);
+    }
     return ValueListenableBuilder<List<TranscriberMessage>>(
-      valueListenable: _messageListenable,
+      valueListenable: listenable,
       builder: (context, messages, child) {
         return _buildSubtitleContainer(context, messages);
       },

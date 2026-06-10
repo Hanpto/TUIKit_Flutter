@@ -213,6 +213,9 @@ class AtomicLocalizationsJa extends AtomicLocalizations {
   String get weekdaySaturday => '土';
 
   @override
+  String get yesterday => '昨日';
+
+  @override
   String get userID => 'ユーザーID';
 
   @override
@@ -226,6 +229,12 @@ class AtomicLocalizationsJa extends AtomicLocalizations {
 
   @override
   String get recordAVideo => 'ビデオ';
+
+  @override
+  String get audioCall => '音声通話';
+
+  @override
+  String get videoCall => 'ビデオ通話';
 
   @override
   String get send => '送信';
@@ -881,6 +890,9 @@ class AtomicLocalizationsJa extends AtomicLocalizations {
   String get waitAgreeFriend => '友達からのレビューと承認を待っています';
 
   @override
+  String get userNotExist => 'このユーザーは存在しません';
+
+  @override
   String get haveBeFriend => '相手はすでにあなたの友達です';
 
   @override
@@ -1504,6 +1516,24 @@ class AtomicLocalizationsJa extends AtomicLocalizations {
   @override
   String get callInviteUserErrorOrInvalidCallParameters =>
       'ユーザー招待エラーまたは通話パラメータが無効です';
+
+  @override
+  String get backToQuotePosition => '引用位置に戻る';
+
+  @override
+  String get quotedMessageRevoked => '引用内容は取り消されました';
+
+  @override
+  String get quotedMessageNotFound => '引用内容が見つかりません';
+
+  @override
+  String get quotedOriginalMessageUnreachable => '元のメッセージを特定できません';
+
+  @override
+  String get messageTypeMerged => '[チャット記録]';
+
+  @override
+  String get messageTypeUnknown => '[メッセージ]';
 
   @override
   String get releaseToConvert => '離すとテキスト化';

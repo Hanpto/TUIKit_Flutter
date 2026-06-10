@@ -1,3 +1,9 @@
+## 5.0.0
+
+### Breaking changes
+* Migrate atomic_x_core to version 5.0.0.
+* Migrate audio_player/audio_recorder/chat_setting/contact_list/conversation_list/emoji_picker/file_picker/image_picker/image_viewer/message_input/message_list/search/third_party/user_picker/video_picker/video_player/video_recorder components out.
+
 ## 4.1.3
 * Optimized input field interaction for easier switching between text and voice messages.
 * Added the ability to convert voice to text after long-pressing the input field for recording.

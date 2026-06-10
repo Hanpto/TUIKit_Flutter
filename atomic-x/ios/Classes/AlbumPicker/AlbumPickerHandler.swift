@@ -1,6 +1,8 @@
 import Flutter
 import UIKit
 import AlbumPicker
+import Photos
+import AVFoundation
 
 /// Bridges Flutter method calls to the AlbumPicker Pod library,
 /// and relays delegate callbacks back via EventChannel.
@@ -225,10 +227,111 @@ class AlbumPickerHandler: NSObject {
             "fileSize": fileSize,
             "duration": Int(albumMedia.duration),
         ]
-        if mediaTypeInt == 1, let thumbnail = albumMedia.videoThumbnailPath {
+        if let thumbnail = albumMedia.videoThumbnailPath {
             dict["videoThumbnailPath"] = thumbnail
         }
         return dict
+    }
+
+    // MARK: - Thumbnail Generation
+
+    fileprivate func generateThumbnailForMedia(_ media: AlbumMedia) -> String? {
+        if let mediaPath = media.mediaPath, !mediaPath.isEmpty {
+            let result: String?
+            if media.mediaType == .video {
+                result = generateThumbnailFromVideoFile(at: mediaPath)
+            } else {
+                result = generateThumbnailFromImageFile(at: mediaPath)
+            }
+            if result != nil { return result }
+        }
+
+        if let asset = media.asset {
+            if let path = generateThumbnailFromAsset(asset) {
+                return path
+            }
+        }
+
+        return nil
+    }
+
+    private func generateThumbnailFromImageFile(at path: String) -> String? {
+        guard let image = UIImage(contentsOfFile: path) else { return nil }
+        let thumbnailImage = scaledImage(image, maxEdge: 540)
+        guard let data = thumbnailImage.jpegData(compressionQuality: 0.8) else { return nil }
+        return saveThumbnailToCache(data: data, identifier: "\(path.hashValue)")
+    }
+
+    private func generateThumbnailFromVideoFile(at path: String) -> String? {
+        let url = URL(fileURLWithPath: path)
+        let asset = AVAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.maximumSize = CGSize(width: 540, height: 540)
+
+        let time = CMTime(seconds: 0, preferredTimescale: 600)
+        guard let cgImage = try? generator.copyCGImage(at: time, actualTime: nil) else { return nil }
+        let image = UIImage(cgImage: cgImage)
+        guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+        return saveThumbnailToCache(data: data, identifier: "\(path.hashValue)")
+    }
+
+    private func generateThumbnailFromAsset(_ asset: PHAsset) -> String? {
+        let semaphore = DispatchSemaphore(value: 0)
+        var resultPath: String?
+
+        let targetSize = CGSize(width: 540, height: 540)
+        let options = PHImageRequestOptions()
+        options.isSynchronous = false
+        options.deliveryMode = .fastFormat
+        options.resizeMode = .fast
+
+        PHImageManager.default().requestImage(
+            for: asset,
+            targetSize: targetSize,
+            contentMode: .aspectFit,
+            options: options
+        ) { [weak self] image, _ in
+            defer { semaphore.signal() }
+            guard let self = self,
+                  let image = image,
+                  let data = image.jpegData(compressionQuality: 0.8) else { return }
+            resultPath = self.saveThumbnailToCache(data: data, identifier: "\(asset.localIdentifier.hashValue)")
+        }
+
+        semaphore.wait()
+        return resultPath
+    }
+
+    private func scaledImage(_ image: UIImage, maxEdge: CGFloat) -> UIImage {
+        let size = image.size
+        let maxDimension = max(size.width, size.height)
+        guard maxDimension > maxEdge else { return image }
+
+        let scale = maxEdge / maxDimension
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        UIGraphicsBeginImageContextWithOptions(newSize, true, 1.0)
+        image.draw(in: CGRect(origin: .zero, size: newSize))
+        let scaledImage = UIGraphicsGetImageFromCurrentImageContext() ?? image
+        UIGraphicsEndImageContext()
+        return scaledImage
+    }
+
+    private func saveThumbnailToCache(data: Data, identifier: String) -> String? {
+        let cacheDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("album_picker_thumbnails", isDirectory: true)
+        try? FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
+
+        let fileName = "\(identifier)_\(Int(Date().timeIntervalSince1970 * 1000))_thumb.jpg"
+        let filePath = cacheDir.appendingPathComponent(fileName)
+
+        do {
+            try data.write(to: filePath)
+            return filePath.path
+        } catch {
+            print("[AlbumPickerHandler] Failed to save thumbnail: \(error)")
+            return nil
+        }
     }
 
     // MARK: - Utilities
@@ -301,18 +404,36 @@ class AlbumPickerDelegateProxy: NSObject, AlbumPickerDelegate {
             handler?.viewController?.dismiss(animated: true)
         }
 
-        var event: [String: Any] = [
-            "type": "onPickConfirm",
-            "sessionId": sessionId,
-            "pickedAlbumMedias": pickedAlbumMedias.map { handler?.buildMediaDataDict(albumMedia: $0) ?? [:] },
-        ]
-        if let textMessage = textMessage {
-            event["textMessage"] = textMessage
-        }
-        handler?.sendEvent(event)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let group = DispatchGroup()
 
-        if pickedAlbumMedias.isEmpty {
-            handler?.completeSession(sessionId: sessionId)
+            for media in pickedAlbumMedias {
+                guard media.videoThumbnailPath == nil else { continue }
+                group.enter()
+                DispatchQueue.global(qos: .userInitiated).async {
+                    if let path = self.handler?.generateThumbnailForMedia(media) {
+                        media.videoThumbnailPath = path
+                    }
+                    group.leave()
+                }
+            }
+
+            group.notify(queue: .main) {
+                var event: [String: Any] = [
+                    "type": "onPickConfirm",
+                    "sessionId": self.sessionId,
+                    "pickedAlbumMedias": pickedAlbumMedias.map { self.handler?.buildMediaDataDict(albumMedia: $0) ?? [:] },
+                ]
+                if let textMessage = textMessage {
+                    event["textMessage"] = textMessage
+                }
+                self.handler?.sendEvent(event)
+
+                if pickedAlbumMedias.isEmpty {
+                    self.handler?.completeSession(sessionId: self.sessionId)
+                }
+            }
         }
     }
 

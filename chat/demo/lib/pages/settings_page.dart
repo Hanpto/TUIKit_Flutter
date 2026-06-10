@@ -1,4 +1,6 @@
-import 'package:tuikit_atomic_x/atomicx.dart' hide AlertDialog;
+import 'dart:async';
+
+import 'package:tencent_chat_uikit/tencent_chat_uikit.dart' hide AlertDialog;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uikit_next/login_page.dart';
@@ -15,6 +17,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late LoginStore _loginStore;
   late SemanticColorScheme colorsTheme;
+  StreamSubscription<LoginEvent>? _loginEventSubscription;
 
   // Translate language options (same as Android SettingsViewModel)
   static const List<Map<String, String>> _translateLanguageOptions = [
@@ -41,6 +44,26 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     _loginStore = LoginStore.shared;
+    _loginEventSubscription = _loginStore.loginEventStream.listen(_onLoginEvent);
+  }
+
+  @override
+  void dispose() {
+    _loginEventSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _onLoginEvent(LoginEvent event) {
+    if (!mounted) return;
+    switch (event) {
+      case LoginEvent.kickedOffline:
+        Toast.warning(context, 'Your account has been logged in on another device.');
+        break;
+      case LoginEvent.loginExpired:
+        Toast.warning(context, 'Login expired. Please log in again.');
+        break;
+    }
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
@@ -203,7 +226,7 @@ class _SettingsPageState extends State<SettingsPage> {
       context,
       actions: _translateLanguageOptions
           .map((option) => ActionSheetItem(
-                title: option["name"]!,
+                title: option["name"] ?? "English",
                 isDestructive: currentLanguage == option["code"],
                 onTap: () async {
                   await AppBuilder.getInstance().translateConfig.setTargetLanguage(option["code"]!);
@@ -219,10 +242,12 @@ class _SettingsPageState extends State<SettingsPage> {
     return ChangeNotifierProvider.value(
       value: _loginStore,
       child: Scaffold(
+        backgroundColor: colorsTheme.bgColorOperate,
         appBar: AppBar(
           backgroundColor: colorsTheme.bgColorOperate,
+          automaticallyImplyLeading: false,
           title: Text(AtomicLocalizations.of(context).settings,
-              style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w600)),
+              style: FontScheme.title3Medium.copyWith(color: colorsTheme.textColorPrimary)),
           centerTitle: false,
         ),
         body: Consumer<LoginStore>(
@@ -341,12 +366,12 @@ class _SettingsPageState extends State<SettingsPage> {
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 30,
+                  radius: 36,
                   backgroundImage: currentUser?.avatarURL != null && currentUser!.avatarURL!.isNotEmpty
                       ? NetworkImage(currentUser.avatarURL!)
                       : null,
                   child: currentUser?.avatarURL == null || currentUser!.avatarURL!.isEmpty
-                      ? const Icon(Icons.person, size: 30)
+                      ? const Icon(Icons.person, size: 36)
                       : null,
                 ),
                 const SizedBox(width: 16),
@@ -358,16 +383,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         (currentUser?.nickname?.isEmpty ?? true)
                             ? currentUser?.userID ?? ''
                             : currentUser?.nickname ?? '',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                        style: FontScheme.body3Bold.copyWith(
+                          color: themeState.colors.textColorPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         "ID: ${currentUser?.userID ?? ''}",
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: FontScheme.caption1Regular.copyWith(
                           color: themeState.colors.textColorSecondary,
                         ),
                       ),
@@ -376,8 +399,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         currentUser?.selfSignature?.isEmpty ?? true
                             ? atomicLocale.noSignature
                             : currentUser!.selfSignature!,
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: FontScheme.caption1Regular.copyWith(
                           color: themeState.colors.textColorSecondary,
                         ),
                       ),
@@ -436,8 +458,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         AppBuilder.getInstance().messageListConfig.enableReadReceipt
                             ? atomicLocale.messageReadReceiptEnabledDesc
                             : atomicLocale.messageReadReceiptDisabledDesc,
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: FontScheme.caption2Regular.copyWith(
                           color: themeState.colors.textColorSecondary,
                         ),
                       ),
@@ -479,10 +500,8 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               child: Text(
                 atomicLocale.logout,
-                style: TextStyle(
+                style: FontScheme.caption1Medium.copyWith(
                   color: themeState.colors.textColorError,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),

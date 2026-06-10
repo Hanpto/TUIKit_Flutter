@@ -139,8 +139,8 @@ class AITranscriberConfigManager {
   factory AITranscriberConfigManager() => _instance;
   
   AITranscriberConfigManager._internal() {
-    AITranscriberStore.shared;
     _currentSettings.addListener(_onSettingsChanged);
+    _observeCallId();
   }
 
   final ValueNotifier<AITranscriberSettings> _currentSettings = 
@@ -148,14 +148,34 @@ class AITranscriberConfigManager {
   final ValueNotifier<bool> _isRunning = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _isPanelVisible = ValueNotifier<bool>(true);
 
+  AITranscriberStore? _transcriberStore;
+  String _currentCallID = '';
+
   ValueNotifier<AITranscriberSettings> get currentSettings => _currentSettings;
   ValueNotifier<bool> get isRunning => _isRunning;
   ValueNotifier<bool> get isPanelVisible => _isPanelVisible;
 
+  void _observeCallId() {
+    CallStore.shared.state.activeCall.addListener(_onCallIdChanged);
+  }
+
+  void _onCallIdChanged() {
+    final callId = CallStore.shared.state.activeCall.value.callId;
+    if (callId.isEmpty) {
+      _currentCallID = '';
+      _transcriberStore = null;
+      return;
+    }
+    if (_currentCallID != callId) {
+      _currentCallID = callId;
+      _transcriberStore = AITranscriberStore.create(callId);
+    }
+  }
+
   void _onSettingsChanged() {
     if (!_isRunning.value) return;
     try {
-      AITranscriberStore.shared.updateRealtimeTranscriber(
+      _transcriberStore?.updateRealtimeTranscriber(
         _currentSettings.value.toTranscriberConfig(),
       );
     } catch (_) {}
@@ -166,7 +186,7 @@ class AITranscriberConfigManager {
     var selfId = CallStore.shared.state.selfInfo.value.id;
     var inviterId = CallStore.shared.state.activeCall.value.inviterId;
     if (selfId == inviterId) {
-      AITranscriberStore.shared.startRealtimeTranscriber(
+      _transcriberStore?.startRealtimeTranscriber(
         _currentSettings.value.toTranscriberConfig(),
       );
       _closeVAD();
@@ -180,7 +200,7 @@ class AITranscriberConfigManager {
     var activeCall = CallStore.shared.state.activeCall.value;
     var isMulti = activeCall.chatGroupId.isNotEmpty || activeCall.inviteeIds.length > 1;
     if (selfId == activeCall.inviterId && !isMulti) {
-      AITranscriberStore.shared.stopRealtimeTranscriber();
+      _transcriberStore?.stopRealtimeTranscriber();
     }
     _isRunning.value = false;
   }

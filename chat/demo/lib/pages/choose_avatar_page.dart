@@ -1,4 +1,4 @@
-import 'package:tuikit_atomic_x/atomicx.dart' hide AlertDialog;
+import 'package:tencent_chat_uikit/tencent_chat_uikit.dart' hide AlertDialog;
 import 'package:flutter/material.dart' hide IconButton;
 
 class ChooseAvatarPage extends StatefulWidget {
@@ -54,10 +54,8 @@ class ChooseAvatarPageState extends State<ChooseAvatarPage> {
         ),
         title: Text(
           atomicLocale.chooseAvatar,
-          style: TextStyle(
+          style: FontScheme.caption1Medium.copyWith(
             color: colorsTheme.textColorPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
           ),
         ),
         centerTitle: true,
@@ -66,9 +64,7 @@ class ChooseAvatarPageState extends State<ChooseAvatarPage> {
             onPressed: _submitAvatar,
             child: Text(
               atomicLocale.confirm,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              style: FontScheme.caption1Medium.copyWith(
                 color: colorsTheme.buttonColorPrimaryDefault,
               ),
             ),

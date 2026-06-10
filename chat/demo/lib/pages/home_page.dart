@@ -1,6 +1,4 @@
-import 'package:tuikit_atomic_x/atomicx.dart' hide Badge;
-import 'package:tencent_chat_uikit/contacts_page.dart';
-import 'package:tencent_chat_uikit/conversations_page.dart';
+import 'package:tencent_chat_uikit/tencent_chat_uikit.dart' hide Badge;
 import 'package:flutter/material.dart';
 import 'package:uikit_next/pages/settings_page.dart';
 import 'package:uikit_next/widgets/tab_icon.dart';
@@ -29,19 +27,18 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     conversationListStore = ConversationListStore.create();
-    conversationListStore.addListener(_onConversationListChanged);
-    conversationListStore.getConversationTotalUnreadCount();
+    conversationListStore.state.totalUnreadCount.addListener(_onConversationListChanged);
   }
 
   @override
   void dispose() {
-    conversationListStore.removeListener(_onConversationListChanged);
+    conversationListStore.state.totalUnreadCount.removeListener(_onConversationListChanged);
     super.dispose();
   }
 
   void _onConversationListChanged() {
     setState(() {
-      totalUnreadCount = conversationListStore.conversationListState.totalUnreadCount;
+      totalUnreadCount = conversationListStore.state.totalUnreadCount.value;
     });
   }
 
@@ -67,8 +64,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         body: IndexedStack(
           index: _currentIndex,
@@ -104,17 +101,15 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: colors.bgColorBottomBar,
           selectedItemColor: colors.buttonColorPrimaryDefault,
           unselectedItemColor: colors.textColorSecondary,
-          selectedFontSize: 10,
-          unselectedFontSize: 10,
+          selectedFontSize: FontScheme.caption3Medium.fontSize!,
+          unselectedFontSize: FontScheme.caption3Medium.fontSize!,
           iconSize: 28,
           elevation: 0,
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w500,
+          selectedLabelStyle: FontScheme.caption3Medium.copyWith(
             height: 1.4,
             letterSpacing: -0.24,
           ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w500,
+          unselectedLabelStyle: FontScheme.caption3Medium.copyWith(
             height: 1.4,
             letterSpacing: -0.24,
           ),
@@ -135,9 +130,7 @@ class _HomePageState extends State<HomePage> {
             isLabelVisible: unreadCount > 0,
             label: Text(
               unreadCount > 99 ? '99+' : '$unreadCount',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+              style: FontScheme.caption3Medium.copyWith(
                 color: colors.textColorButton,
                 height: 1.4,
               ),

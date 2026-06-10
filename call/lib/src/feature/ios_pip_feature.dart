@@ -271,10 +271,10 @@ class IosPipFeature {
   }
 
   void _downloadAvatars(List<CallParticipantInfo> participants) {
-    final contactListStore = ContactListStore.create();
+    final contactStore = ContactStore.shared;
 
     for (final participant in participants) {
-      contactListStore.fetchUserInfo(userID: participant.id);
+      contactStore.getContactInfo(userIDList: [participant.id]);
 
       final avatarUrl = participant.avatarURL;
       if (avatarUrl.isEmpty) continue;

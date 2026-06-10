@@ -1,0 +1,296 @@
+import 'package:tuikit_atomic_x/base_component/base_component.dart';
+import 'package:atomic_x_core/atomicxcore.dart';
+import 'package:flutter/material.dart' hide IconButton;
+
+import 'group_add_mute_member.dart';
+
+class GroupManagement extends StatefulWidget {
+  final String groupID;
+  final GroupMemberStore memberStore;
+
+  const GroupManagement({
+    super.key,
+    required this.groupID,
+    required this.memberStore,
+  });
+
+  @override
+  State<GroupManagement> createState() => _GroupManagementState();
+}
+
+class _GroupManagementState extends State<GroupManagement> {
+  late SemanticColorScheme colorsTheme;
+  late AtomicLocalizations atomicLocale;
+  GroupInfo? _groupInfo;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGroupInfo();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    atomicLocale = AtomicLocalizations.of(context);
+    colorsTheme = BaseThemeProvider.colorsOf(context);
+  }
+
+  Future<void> _loadGroupInfo() async {
+    final result = await GroupStore.shared.getGroupInfo(groupID: widget.groupID);
+    if (result.isSuccess && result.groupInfo != null && mounted) {
+      setState(() {
+        _groupInfo = result.groupInfo;
+      });
+    }
+  }
+
+  Future<void> _onMuteAllChanged(bool value) async {
+    final result = await GroupStore.shared.muteAllMembers(groupID: widget.groupID, isMuted: value);
+    if (result.errorCode == 0) {
+      if (mounted) {
+        Toast.success(context, value ? atomicLocale.groupMuteAllEnabled : atomicLocale.groupMuteAllDisabled);
+        _loadGroupInfo();
+      }
+    } else {
+      debugPrint('setMuteAllMembers failed, errorCode:${result.errorCode}, errorMessage:${result.errorMessage}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isAllMuted = _groupInfo?.isAllMuted ?? false;
+
+    return Scaffold(
+      backgroundColor: colorsTheme.listColorHover,
+      appBar: AppBar(
+        backgroundColor: colorsTheme.bgColorTopBar,
+        scrolledUnderElevation: 0,
+        leading: IconButton.buttonContent(
+          content: IconOnlyContent(Icon(Icons.arrow_back_ios, color: colorsTheme.buttonColorPrimaryDefault)),
+          type: ButtonType.noBorder,
+          size: ButtonSize.l,
+          onClick: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          atomicLocale.groupManagement,
+          style: FontScheme.caption1Medium.copyWith(
+            color: colorsTheme.textColorPrimary,
+          ),
+        ),
+        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: colorsTheme.strokeColorPrimary,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        left: false,
+        right: false,
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: colorsTheme.bgColorOperate,
+              ),
+              child: Column(
+                children: [
+                  _buildSwitchRow(
+                    title: atomicLocale.muteAll,
+                    value: isAllMuted,
+                    onChanged: _onMuteAllChanged,
+                  ),
+                  Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.zero,
+                    decoration: BoxDecoration(
+                      color: colorsTheme.buttonColorSecondaryHover,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text(
+                        atomicLocale.groupMuteTip,
+                        style: FontScheme.caption3Regular.copyWith(
+                          color: colorsTheme.textColorSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (!isAllMuted) ...[
+              const SizedBox(height: 16),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: colorsTheme.listColorHover,
+                  ),
+                  child: _buildMutedMembersList(),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSwitchRow({
+    required String title,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: FontScheme.caption1Regular.copyWith(
+                color: colorsTheme.textColorPrimary,
+              ),
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
+              return colorsTheme.textColorButton;
+            }),
+            trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+              if (states.contains(WidgetState.selected)) {
+                return colorsTheme.switchColorOn;
+              }
+              return colorsTheme.switchColorOff;
+            }),
+            trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((states) {
+              return colorsTheme.clearColor;
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMutedMembersList() {
+    return ValueListenableBuilder<List<GroupMember>>(
+      valueListenable: widget.memberStore.state.memberList,
+      builder: (context, members, child) {
+        final mutedMembers = members.where((member) => member.isMuted).toList();
+        return Column(
+          children: [
+            GestureDetector(
+              onTap: _onAddMuteMember,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 4),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                color: colorsTheme.bgColorOperate,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.add_circle_outline,
+                      size: 20,
+                      color: colorsTheme.buttonColorPrimaryDefault,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      atomicLocale.addMuteMemberTip,
+                      style: FontScheme.caption2Regular.copyWith(
+                        color: colorsTheme.buttonColorPrimaryDefault,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: mutedMembers.isEmpty
+                  ? Container()
+                  : ListView.builder(
+                      itemCount: mutedMembers.length,
+                      itemBuilder: (context, index) {
+                        final member = mutedMembers[index];
+                        return _buildMutedMemberItem(member);
+                      },
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _onAddMuteMember() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => GroupAddMuteMember(
+          memberStore: widget.memberStore,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMutedMemberItem(GroupMember member) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 1),
+      color: colorsTheme.bgColorOperate,
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              image: member.avatarURL?.isNotEmpty == true
+                  ? DecorationImage(
+                      image: NetworkImage(member.avatarURL!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+              color: member.avatarURL?.isEmpty != false ? colorsTheme.listColorHover : null,
+            ),
+            child: member.avatarURL?.isEmpty != false
+                ? Center(
+                    child: Text(
+                      () { final n = ChatUtils.memberDisplayName(member); return n.isNotEmpty ? n[0].toUpperCase() : '?'; }(),
+                      style: FontScheme.caption1Medium.copyWith(
+                        color: colorsTheme.textColorButton,
+                      ),
+                    ),
+                  )
+                : null,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              ChatUtils.memberDisplayName(member),
+              style: FontScheme.caption2Regular.copyWith(
+                color: colorsTheme.textColorPrimary,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => _onUnmuteMember(member),
+            child: Icon(
+              Icons.remove_circle,
+              color: colorsTheme.textColorError,
+              size: 20,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _onUnmuteMember(GroupMember member) async {
+    await widget.memberStore.muteMember(userID: member.userID, time: 0);
+  }
+}
