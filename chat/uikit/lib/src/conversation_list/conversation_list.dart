@@ -91,7 +91,7 @@ class _ConversationListState extends State<ConversationList> {
     });
     final option = ConversationLoadOption();
 
-    final result = await conversationListStore.loadConversationList(option: option);
+    final result = await conversationListStore.loadConversations(option: option);
     setState(() {
       hasMoreConversations = result.isSuccess && conversationListStore.state.hasMoreConversations.value;
       isLoading = false;
@@ -104,7 +104,7 @@ class _ConversationListState extends State<ConversationList> {
     setState(() {
       isLoading = true;
     });
-    final result = await conversationListStore.loadMoreConversationList();
+    final result = await conversationListStore.loadMoreConversations();
     setState(() {
       hasMoreConversations = result.isSuccess && conversationListStore.state.hasMoreConversations.value;
       isLoading = false;

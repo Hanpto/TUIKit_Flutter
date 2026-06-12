@@ -39,8 +39,7 @@ class MessageResender {
       offlinePushInfo: message.offlinePushInfo,
     );
 
-    await MessageInputStore.create(conversationID: conversationID)
-        .sendMessage(payload: payload, option: option);
+    await MessageInputStore.create(conversationID: conversationID).sendMessage(payload: payload, option: option);
   }
 
   static SendMessagePayload? _convertToSendPayload(MessagePayload? payload) {
@@ -92,12 +91,10 @@ class MessageResender {
         if (data == null || data.isEmpty) return null;
         return FaceSendMessagePayload(index: p.faceIndex, data: data);
       case CustomMessagePayload p:
-        final customData = p.customData;
-        if (customData == null) return null;
         return CustomSendMessagePayload(
-          customData: customData,
-          description: p.description ?? '',
-          extensionInfo: p.extensionInfo ?? '',
+          customData: p.customData,
+          description: p.description,
+          extensionInfo: p.extensionInfo,
         );
       default:
         return null;

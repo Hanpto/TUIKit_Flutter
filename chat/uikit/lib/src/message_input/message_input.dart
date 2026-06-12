@@ -781,7 +781,11 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
       case FaceMessagePayload p:
         return FaceSendMessagePayload(index: p.faceIndex, data: p.faceData ?? '');
       case CustomMessagePayload p:
-        return CustomSendMessagePayload(customData: p.customData ?? '', description: p.description ?? '', extensionInfo: p.extensionInfo ?? '');
+        return CustomSendMessagePayload(
+          customData: p.customData,
+          description: p.description,
+          extensionInfo: p.extensionInfo,
+        );
       default:
         return null;
     }

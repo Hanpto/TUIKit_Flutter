@@ -81,7 +81,7 @@ class _ForwardTargetSelectorPageState extends State<ForwardTargetSelectorPage> {
       _isLoading = true;
     });
 
-    await _conversationListStore.loadConversationList(
+    await _conversationListStore.loadConversations(
       option: ConversationLoadOption(count: 100),
     );
 
