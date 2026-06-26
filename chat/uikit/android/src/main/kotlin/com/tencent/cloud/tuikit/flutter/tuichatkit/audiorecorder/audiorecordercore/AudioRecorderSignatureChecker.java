@@ -18,6 +18,7 @@ public class AudioRecorderSignatureChecker {
     private static final String KEY_APP_ID = "appid";
     private static final String KEY_SIGNATURE = "signature";
     private static final int SCHEDULE_UPDATE_SIGNATURE_INTERVAL_WHEN_FAIL = 1000;
+    private static final int SCHEDULE_UPDATE_SIGNATURE_INTERVAL_WHEN_NOT_INITIALIZED = 5000;
     private static final int GET_SIGNATURE_RETRY_TIMES = 3;
     private static final int ERR_SDK_INTERFACE_NOT_SUPPORT = 7013;
     private static final int ERR_SDK_NOT_INITIALIZED = 6013;
@@ -26,6 +27,7 @@ public class AudioRecorderSignatureChecker {
     private String mSignature = "";
     private int mExpiredTime = 0;
     private int mRetryCount = 0;
+    private boolean mHasLoggedNotInitialized = false;
     private ResultCode mResultCode = ResultCode.ERROR_NO_SIGNATURE;
 
     public static AudioRecorderSignatureChecker getInstance() {
@@ -72,6 +74,7 @@ public class AudioRecorderSignatureChecker {
             return;
         }
         mRetryCount = 0;
+        mHasLoggedNotInitialized = false;
         HashMap<String, String> hashMap = (HashMap<String, String>) object;
         mSignature = hashMap.get("signature");
         String expiredTime = hashMap.get("expired_time");
@@ -85,17 +88,22 @@ public class AudioRecorderSignatureChecker {
     }
 
     private void onGetVideoEditSignatureError(int code, String desc) {
-        Log.e(TAG, "getVideoEditSignature error, code:" + code + ", desc:" + desc);
-
         if (code == ERR_SDK_INTERFACE_NOT_SUPPORT) {
+            Log.i(TAG, "getVideoEditSignature interface not support, stop retry. code:" + code);
             handler.removeCallbacksAndMessages(null);
             return;
         }
 
         if (code == ERR_SDK_NOT_INITIALIZED) {
-            mRetryCount = 0;
+            if (!mHasLoggedNotInitialized) {
+                Log.i(TAG, "getVideoEditSignature: IM SDK not initialized yet, will retry later. code:" + code);
+                mHasLoggedNotInitialized = true;
+            }
+            updateSignatureDelay(SCHEDULE_UPDATE_SIGNATURE_INTERVAL_WHEN_NOT_INITIALIZED);
+            return;
         }
 
+        Log.e(TAG, "getVideoEditSignature error, code:" + code + ", desc:" + desc);
         if (mRetryCount++ > GET_SIGNATURE_RETRY_TIMES) {
             Log.e(TAG, "The maximum number of attempts to retry obtaining signatures has been reached");
             mRetryCount = 0;
