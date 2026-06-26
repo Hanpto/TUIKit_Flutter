@@ -1,5 +1,6 @@
 import 'package:tuikit_atomic_x/base_component/base_component.dart';
 import 'package:atomic_x_core/atomicxcore.dart';
+import 'package:tencent_chat_uikit/src/common/utils/uikit_util.dart';
 import 'package:flutter/material.dart' hide IconButton;
 
 import 'group_add_mute_member.dart';
@@ -260,7 +261,7 @@ class _GroupManagementState extends State<GroupManagement> {
             child: member.avatarURL?.isEmpty != false
                 ? Center(
                     child: Text(
-                      () { final n = ChatUtils.memberDisplayName(member); return n.isNotEmpty ? n[0].toUpperCase() : '?'; }(),
+                      () { final n = UIKitUtil.memberDisplayName(member); return n.isNotEmpty ? n[0].toUpperCase() : '?'; }(),
                       style: FontScheme.caption1Medium.copyWith(
                         color: colorsTheme.textColorButton,
                       ),
@@ -271,7 +272,7 @@ class _GroupManagementState extends State<GroupManagement> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              ChatUtils.memberDisplayName(member),
+              UIKitUtil.memberDisplayName(member),
               style: FontScheme.caption2Regular.copyWith(
                 color: colorsTheme.textColorPrimary,
               ),

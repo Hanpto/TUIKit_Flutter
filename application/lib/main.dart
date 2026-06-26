@@ -62,6 +62,7 @@ class _MyAppState extends State<MyApp> {
               ...RoomLocalizations.localizationsDelegates,
               // ...TEBeautyKitLocalizations.localizationsDelegates,
               AtomicLocalizations.delegate,
+              ChatLocalizations.delegate,
             ],
             supportedLocales: const [
               Locale('en'),

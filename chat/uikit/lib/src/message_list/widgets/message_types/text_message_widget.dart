@@ -4,6 +4,7 @@ import 'package:tencent_chat_uikit/src/message_list/message_list_config.dart';
 import 'package:tencent_chat_uikit/src/message_list/widgets/message_status_mixin.dart';
 import 'package:tencent_chat_uikit/src/third_party/extended_text/extended_text.dart';
 import 'package:atomic_x_core/atomicxcore.dart';
+import 'package:tencent_chat_uikit/src/common/utils/uikit_util.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -130,7 +131,7 @@ class _TextMessageWidgetState extends State<TextMessageWidget> with MessageStatu
 
   String _getContentSpan(String text, SemanticColorScheme colors) {
     String contentData = "";
-    Iterable<RegExpMatch> matches = ChatUtils.urlReg.allMatches(text);
+    Iterable<RegExpMatch> matches = UIKitUtil.urlReg.allMatches(text);
 
     int index = 0;
     for (RegExpMatch match in matches) {
@@ -144,7 +145,7 @@ class _TextMessageWidgetState extends State<TextMessageWidget> with MessageStatu
         contentData += a;
       }
 
-      if (ChatUtils.urlReg.hasMatch(c)) {
+      if (UIKitUtil.urlReg.hasMatch(c)) {
         contentData += '${HttpText.flag}$c${HttpText.flag}';
       } else {
         contentData += c;

@@ -125,7 +125,7 @@ class MessageTooltipState extends State<MessageTooltip> {
           padding: const EdgeInsets.all(6),
           constraints: const BoxConstraints(
             minWidth: 44,
-            maxWidth: 60,
+            maxWidth: 72,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -140,7 +140,7 @@ class MessageTooltipState extends State<MessageTooltip> {
                   color: item.isDestructive ? colorTheme.textColorError : colorTheme.textColorPrimary,
                 ),
                 textAlign: TextAlign.center,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               )
             ],
@@ -151,7 +151,10 @@ class MessageTooltipState extends State<MessageTooltip> {
   }
 
   Widget _buildMenuIcon(MessageMenuItem item, SemanticColorScheme colorTheme) {
-    final color = colorTheme.buttonColorPrimaryDefault;
+    // Derive the icon color from the theme (ThemeState) so it stays visible in
+    // both light and dark modes; destructive actions (e.g. delete) use the
+    // error color to match their label.
+    final color = item.isDestructive ? colorTheme.textColorError : colorTheme.textColorPrimary;
     
     if (item.assetName != null && item.assetName!.isNotEmpty) {
       final isSvg = item.assetName!.toLowerCase().endsWith('.svg');
@@ -188,7 +191,7 @@ class MessageTooltipState extends State<MessageTooltip> {
     }
     
     return Icon(
-      item.icon ,
+      item.icon,
       size: 18,
       color: color,
     );

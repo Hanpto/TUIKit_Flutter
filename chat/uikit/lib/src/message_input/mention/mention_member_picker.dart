@@ -1,7 +1,7 @@
 import 'package:atomic_x_core/atomicxcore.dart';
+import 'package:tencent_chat_uikit/src/common/utils/uikit_util.dart';
 import 'package:flutter/material.dart';
 import 'package:tuikit_atomic_x/base_component/basic_controls/avatar.dart';
-import 'package:tuikit_atomic_x/base_component/utils/chat_utils.dart';
 import 'package:tuikit_atomic_x/base_component/localizations/atomic_localizations.dart';
 import 'package:tuikit_atomic_x/base_component/theme/color_scheme.dart';
 import 'package:tuikit_atomic_x/base_component/theme/font.dart';
@@ -79,7 +79,7 @@ class _MentionMemberPickerState extends State<MentionMemberPicker> with WidgetsB
         .map((member) {
       return UserPickerData(
         key: member.userID,
-        label: ChatUtils.memberDisplayName(member),
+        label: UIKitUtil.memberDisplayName(member),
         avatarURL: member.avatarURL,
         extraData: member,
       );

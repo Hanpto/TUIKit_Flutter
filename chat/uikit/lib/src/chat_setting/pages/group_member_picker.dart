@@ -1,5 +1,6 @@
 import 'package:tuikit_atomic_x/base_component/base_component.dart';
 import 'package:atomic_x_core/atomicxcore.dart';
+import 'package:tencent_chat_uikit/src/common/utils/uikit_util.dart';
 import 'package:flutter/material.dart' hide IconButton;
 
 import '../../user_picker/user_picker.dart';
@@ -69,7 +70,7 @@ class _GroupMemberPickerState extends State<GroupMemberPicker> {
         .where((member) => member.userID != currentUserID)
         .map((member) => UserPickerData(
               key: member.userID,
-              label: ChatUtils.memberDisplayName(member),
+              label: UIKitUtil.memberDisplayName(member),
               avatarURL: member.avatarURL,
             ))
         .toList();

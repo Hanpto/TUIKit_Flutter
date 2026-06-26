@@ -1,10 +1,15 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tencent_chat_uikit/src/audio_recoder/audio_recorder.dart';
 import 'package:tuikit_atomic_x/base_component/base_component.dart';
-import 'package:tencent_chat_uikit/src/message_input/voice_to_text_manager.dart';
+import 'package:tencent_chat_uikit/src/ai/ai_media_process_manager.dart';
+import 'package:tencent_chat_uikit/src/ai/tts/tts_playback_helper.dart';
+import 'package:tencent_chat_uikit/src/ai/tts/tts_text_sanitizer.dart';
+import 'package:tencent_chat_uikit/src/ai/tts/voice_message_config.dart';
+import 'package:tencent_chat_uikit/src/common/language/index.dart';
 
 /// State machine of [AudioRecordOverlay].
 ///
@@ -50,9 +55,9 @@ class AudioRecordOverlay extends StatefulWidget {
   final bool enableVoiceToText;
 
   /// Manager that performs upload + voice-to-text conversion. Defaults to a
-  /// real [VoiceToTextManager] backed by SDK experimental APIs; tests can
+  /// real [AiMediaProcessManager] backed by SDK experimental APIs; tests can
   /// inject a fake.
-  final VoiceToTextManager? voiceToTextManager;
+  final AiMediaProcessManager? mediaProcessManager;
 
   /// Optional: provide these when the overlay lives inside an [OverlayEntry],
   /// where the normal InheritedWidget lookup would fail.
@@ -65,7 +70,7 @@ class AudioRecordOverlay extends StatefulWidget {
     required this.onRecordCancelled,
     this.onSendText,
     this.enableVoiceToText = false,
-    this.voiceToTextManager,
+    this.mediaProcessManager,
     this.colorScheme,
     this.atomicLocalizations,
   });
@@ -79,7 +84,7 @@ class AudioRecordOverlayState extends State<AudioRecordOverlay>
   late AudioRecorder _audioRecorder;
   late AnimationController _waveAnimationController;
   late AnimationController _dotsAnimationController;
-  late VoiceToTextManager _voiceToTextManager;
+  late AiMediaProcessManager _mediaProcessManager;
 
   _OverlayState _state = _OverlayState.recording;
   bool _isRecording = false;
@@ -101,6 +106,45 @@ class AudioRecordOverlayState extends State<AudioRecordOverlay>
   /// the text bubble, focus is requested and the bubble switches to its
   /// "active editing" appearance (blue bg + white text + waveform hidden).
   FocusNode? _editingFocusNode;
+
+  /// First ASR transcription text — the immutable source for translation.
+  /// Switching languages always translates from this, never from a prior
+  /// translation, to avoid cumulative information loss.
+  String _asrOriginalText = '';
+
+  /// Current translated text; null when not translated (or translation undone).
+  String? _translatedText;
+
+  /// True while a translate request is in flight.
+  bool _isTranslating = false;
+
+  /// True while the editing-state "read aloud" TTS playback is active.
+  bool _isPlayingTts = false;
+
+  /// Lazily-created TTS helper, reusing [_mediaProcessManager].
+  TtsPlaybackHelper? _ttsHelper;
+
+  /// Translate target languages offered in the record-translation selector.
+  /// Mirrors the demo settings translate language list.
+  static const List<Map<String, String>> _translateLanguageOptions = [
+    {"code": "zh", "name": "简体中文"},
+    {"code": "zh-TW", "name": "繁體中文"},
+    {"code": "en", "name": "English"},
+    {"code": "ja", "name": "日本語"},
+    {"code": "ko", "name": "한국어"},
+    {"code": "fr", "name": "Français"},
+    {"code": "es", "name": "Español"},
+    {"code": "it", "name": "Italiano"},
+    {"code": "de", "name": "Deutsch"},
+    {"code": "tr", "name": "Türkçe"},
+    {"code": "ru", "name": "Русский"},
+    {"code": "pt", "name": "Português"},
+    {"code": "vi", "name": "Tiếng Việt"},
+    {"code": "id", "name": "Bahasa Indonesia"},
+    {"code": "th", "name": "ภาษาไทย"},
+    {"code": "ms", "name": "Bahasa Melayu"},
+    {"code": "hi", "name": "हिन्दी"},
+  ];
 
   /// Max recording duration in seconds
   static const int _maxDurationSec = 60;
@@ -152,7 +196,8 @@ class AudioRecordOverlayState extends State<AudioRecordOverlay>
       onStateChanged: _onStateChanged,
     );
 
-    _voiceToTextManager = widget.voiceToTextManager ?? VoiceToTextManager();
+    _mediaProcessManager =
+        widget.mediaProcessManager ?? AiMediaProcessManager();
   }
 
   @override
@@ -162,6 +207,7 @@ class AudioRecordOverlayState extends State<AudioRecordOverlay>
     _dotsAnimationController.dispose();
     _audioRecorder.cancelRecord();
     _audioRecorder.dispose();
+    _ttsHelper?.stop();
     _editingController?.dispose();
     _editingFocusNode?.dispose();
     super.dispose();
@@ -256,10 +302,16 @@ class AudioRecordOverlayState extends State<AudioRecordOverlay>
   }
 
   Future<void> _runConversion(String filePath) async {
-    final result = await _voiceToTextManager.convert(filePath);
+    final result = await _mediaProcessManager.convert(filePath);
     if (!mounted) return;
 
-    if (result is VoiceToTextSuccess && result.text.isNotEmpty) {
+    if (result is AiAsrSuccess && result.text.isNotEmpty) {
+      // Cache the original transcription and reset translation/TTS state for
+      // this new editing session.
+      _asrOriginalText = result.text;
+      _translatedText = null;
+      _isTranslating = false;
+      _isPlayingTts = false;
       final controller = TextEditingController(text: result.text);
       controller.selection = TextSelection.collapsed(offset: result.text.length);
       _editingController?.dispose();
@@ -319,6 +371,11 @@ class AudioRecordOverlayState extends State<AudioRecordOverlay>
         _editingFocusNode?.removeListener(_onEditingFocusChanged);
         _editingFocusNode?.dispose();
         _editingFocusNode = null;
+        _asrOriginalText = '';
+        _translatedText = null;
+        _isTranslating = false;
+        _isPlayingTts = false;
+        _ttsHelper?.stop();
       });
     }
   }
@@ -759,7 +816,9 @@ class AudioRecordOverlayState extends State<AudioRecordOverlay>
             ),
           ),
         ),
-        const SizedBox(height: _kBubbleToButtonsGap),
+        const SizedBox(height: 12),
+        _buildTranslateChipRow(colorScheme),
+        const SizedBox(height: 16),
         _buildEditingButtonsRow(colorScheme, atomicLocale, disabled: false),
         const SizedBox(height: 16),
         // Static gray waveform bar is shown both before AND after the
@@ -805,6 +864,269 @@ class AudioRecordOverlayState extends State<AudioRecordOverlay>
         ),
       ),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // editing state — translate / read-aloud chip row
+  // ---------------------------------------------------------------------------
+
+  /// Row of action chips shown between the text bubble and the three buttons.
+  /// Before translation: a single "Translate" chip. After translation:
+  /// "Undo Translation" / "Switch Language" / "Read Aloud" (or "Stop").
+  Widget _buildTranslateChipRow(SemanticColorScheme colorScheme) {
+    final chatLocale = ChatLocalizations.of(context)!;
+    final List<Widget> children;
+    if (_translatedText == null) {
+      children = [
+        _buildActionChip(
+          colorScheme,
+          label: chatLocale.voiceTranslate,
+          onTap: _isTranslating ? null : _onTranslateTapped,
+        ),
+      ];
+    } else {
+      children = [
+        _buildActionChip(
+          colorScheme,
+          label: chatLocale.voiceCancelTranslation,
+          onTap: _onCancelTranslationTapped,
+        ),
+        const SizedBox(width: 8),
+        _buildActionChip(
+          colorScheme,
+          label: chatLocale.voiceSwitchLanguage,
+          onTap: _isTranslating ? null : _onSwitchLanguageTapped,
+        ),
+        const SizedBox(width: 8),
+        _buildActionChip(
+          colorScheme,
+          label: _isPlayingTts
+              ? chatLocale.voiceStopReadAloud
+              : chatLocale.voiceReadAloud,
+          onTap: _onReadAloudTapped,
+        ),
+      ];
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: _kPanelHPadding),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildActionChip(
+    SemanticColorScheme colorScheme, {
+    required String label,
+    required VoidCallback? onTap,
+  }) {
+    final disabled = onTap == null;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: colorScheme.buttonColorSecondaryDefault,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          label,
+          style: FontScheme.caption2Regular.copyWith(
+            color: disabled
+                ? colorScheme.textColorDisable
+                : colorScheme.textColorPrimary,
+            decoration: TextDecoration.none,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onTranslateTapped() async {
+    final config = VoiceMessageConfig.instance;
+    // Refresh from local storage so a previously saved language survives an
+    // app restart (the singleton's in-memory cache starts empty).
+    await config.load();
+    var lang = config.recordTranslateTargetLanguage;
+    if (lang.isEmpty) {
+      final picked = await _showLanguageSelector();
+      if (picked == null) return;
+      await config.setRecordTranslateTargetLanguage(picked);
+      lang = picked;
+    }
+    await _translateTo(lang);
+  }
+
+  Future<void> _onSwitchLanguageTapped() async {
+    final picked = await _showLanguageSelector();
+    if (picked == null) return;
+    await VoiceMessageConfig.instance.setRecordTranslateTargetLanguage(picked);
+    await _translateTo(picked);
+  }
+
+  /// Always translates from [_asrOriginalText] (never from a prior translation).
+  Future<void> _translateTo(String languageCode) async {
+    if (!mounted) return;
+    setState(() => _isTranslating = true);
+    final result = await _mediaProcessManager.translateSingleText(
+      text: _asrOriginalText,
+      targetLanguage: languageCode,
+    );
+    if (!mounted) return;
+    setState(() => _isTranslating = false);
+    if (result.success && result.text != null && result.text!.isNotEmpty) {
+      _translatedText = result.text;
+      _setControllerText(result.text!);
+      setState(() {});
+    } else {
+      Toast.error(context, ChatLocalizations.of(context)!.voiceTranslateFailed);
+    }
+  }
+
+  void _onCancelTranslationTapped() {
+    _translatedText = null;
+    _setControllerText(_asrOriginalText);
+    setState(() {});
+  }
+
+  void _setControllerText(String text) {
+    final controller = _editingController;
+    if (controller == null) return;
+    controller.text = text;
+    controller.selection = TextSelection.collapsed(offset: text.length);
+  }
+
+  Future<void> _onReadAloudTapped() async {
+    if (_isPlayingTts) {
+      await _ttsHelper?.stop();
+      if (mounted) setState(() => _isPlayingTts = false);
+      return;
+    }
+    // Strip emoji so they aren't spoken.
+    final text = sanitizeTextForTts(_editingController?.text ?? '');
+    if (text.isEmpty) return;
+    // Refresh selected voice from local storage (survives app restart).
+    await VoiceMessageConfig.instance.load();
+    _ttsHelper ??= TtsPlaybackHelper(service: _mediaProcessManager);
+    setState(() => _isPlayingTts = true);
+    await _ttsHelper!.speak(
+      text: text,
+      voiceId: VoiceMessageConfig.instance.selectedVoiceId,
+      onComplete: () {
+        if (mounted) setState(() => _isPlayingTts = false);
+      },
+      onError: (e) {
+        if (mounted) {
+          setState(() => _isPlayingTts = false);
+          Toast.error(context, ChatLocalizations.of(context)!.voiceTtsFailed);
+        }
+      },
+    );
+  }
+
+  /// Language picker shown as an [OverlayEntry] so it renders ABOVE the audio
+  /// record overlay (which itself lives in an OverlayEntry). A modal bottom
+  /// sheet would be a Navigator route and appear behind the record panel.
+  /// Returns the selected language code, or null when dismissed.
+  Future<String?> _showLanguageSelector() async {
+    final overlay = Overlay.of(context);
+    final colorScheme =
+        widget.colorScheme ?? BaseThemeProvider.colorsOf(context);
+    final chatLocale = ChatLocalizations.of(context)!;
+    final currentLang =
+        VoiceMessageConfig.instance.recordTranslateTargetLanguage;
+
+    final completer = Completer<String?>();
+    late OverlayEntry entry;
+
+    void close(String? result) {
+      if (entry.mounted) entry.remove();
+      if (!completer.isCompleted) completer.complete(result);
+    }
+
+    entry = OverlayEntry(
+      builder: (overlayContext) {
+        final mediaQuery = MediaQuery.of(overlayContext);
+        return Stack(
+          children: [
+            // Dimming barrier; tap to dismiss.
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => close(null),
+                child: const ColoredBox(color: Colors.black54),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Material(
+                color: colorScheme.bgColorOperate,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: mediaQuery.size.height * 0.6,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Text(
+                            chatLocale.voiceSwitchLanguageSheetTitle,
+                            style: FontScheme.caption2Regular.copyWith(
+                              color: colorScheme.textColorSecondary,
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                        ),
+                        Flexible(
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _translateLanguageOptions.length,
+                            itemBuilder: (context, index) {
+                              final option = _translateLanguageOptions[index];
+                              final selected = currentLang == option['code'];
+                              return InkWell(
+                                onTap: () => close(option['code']),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 14),
+                                  child: Text(
+                                    option['name'] ?? '',
+                                    style: FontScheme.caption1Regular.copyWith(
+                                      color: selected
+                                          ? colorScheme.textColorLink
+                                          : colorScheme.textColorPrimary,
+                                      decoration: TextDecoration.none,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    overlay.insert(entry);
+    return completer.future;
   }
 
   Widget _buildEditingButtonsRow(

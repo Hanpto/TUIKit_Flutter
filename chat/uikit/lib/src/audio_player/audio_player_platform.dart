@@ -65,9 +65,16 @@ class AudioPlayerPlatform {
 
             switch (eventType) {
               case 'onComplete':
-                _onComplete?.call();
+                // Clear state BEFORE invoking the callback. The callback may
+                // synchronously start playing another file (e.g. the
+                // "listen from here" queue), and play() inspects
+                // _currentPlayingPath / _previousOnComplete; leaving them set
+                // would re-fire this callback and recurse infinitely.
+                final onComplete = _onComplete;
+                _onComplete = null;
                 _currentPlayingPath = null;
                 _previousOnComplete = null;
+                onComplete?.call();
                 break;
               case 'onProgressUpdate':
                 final currentPosition = event['currentPosition'] as int? ?? 0;

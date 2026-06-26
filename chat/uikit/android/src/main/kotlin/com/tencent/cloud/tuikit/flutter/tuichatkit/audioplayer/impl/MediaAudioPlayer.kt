@@ -51,12 +51,17 @@ class MediaAudioPlayer : AudioPlayer() {
         }
 
         try {
-            val file = File(filePath)
-            if (!file.exists() || !file.canRead()) {
-                val errorMsg = "File not found: $filePath"
-                Log.e(TAG, errorMsg)
-                listener?.onError(errorMsg)
-                return
+            val isRemote = filePath.startsWith("http://", true) ||
+                filePath.startsWith("https://", true)
+
+            if (!isRemote) {
+                val file = File(filePath)
+                if (!file.exists() || !file.canRead()) {
+                    val errorMsg = "File not found: $filePath"
+                    Log.e(TAG, errorMsg)
+                    listener?.onError(errorMsg)
+                    return
+                }
             }
 
             mediaPlayer = MediaPlayer().apply {
@@ -68,7 +73,13 @@ class MediaAudioPlayer : AudioPlayer() {
                 )
 
                 setDataSource(filePath)
-                prepare()
+                // Remote sources must be prepared asynchronously; local files
+                // can prepare synchronously. onPrepared fires for both.
+                if (isRemote) {
+                    prepareAsync()
+                } else {
+                    prepare()
+                }
 
                 setOnCompletionListener {
                     stopProgressUpdates()

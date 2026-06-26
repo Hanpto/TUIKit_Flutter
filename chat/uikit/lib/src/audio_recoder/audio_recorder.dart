@@ -45,6 +45,8 @@ typedef RecordingProgressCallback = void Function(int duration, double progress)
 
 typedef RecordingStateCallback = void Function(bool isRecording);
 
+typedef RecordingPowerLevelCallback = void Function(int powerLevel);
+
 typedef AudioRecordCompleteCallback = void Function(RecordInfo? recordInfo);
 
 class AudioRecorder {
@@ -54,6 +56,7 @@ class AudioRecorder {
 
   RecordingProgressCallback? onProgressUpdate;
   RecordingStateCallback? onStateChanged;
+  RecordingPowerLevelCallback? onPowerLevel;
 
   bool get isRecording => _isRecording;
 
@@ -65,14 +68,17 @@ class AudioRecorder {
   void initialize({
     RecordingProgressCallback? onProgressUpdate,
     RecordingStateCallback? onStateChanged,
+    RecordingPowerLevelCallback? onPowerLevel,
   }) {
     this.onProgressUpdate = onProgressUpdate;
     this.onStateChanged = onStateChanged;
+    this.onPowerLevel = onPowerLevel;
   }
 
   Future<bool> startRecord({
     required String filePath,
     required AudioRecordCompleteCallback onComplete,
+    int? maxDurationMs,
   }) async {
     if (_isRecording) {
       debugPrint('Already recording');
@@ -92,13 +98,14 @@ class AudioRecorder {
       });
 
       AudioRecorderPlatform.setOnPowerLevel((powerLevel) {
-        // Power level can be used for UI visualization if needed
+        onPowerLevel?.call(powerLevel);
       });
 
       // Start native recording asynchronously
       _startNativeRecording(
         filePath: filePath,
         onComplete: onComplete,
+        maxDurationMs: maxDurationMs ?? maxDuration,
       );
 
       return true;
@@ -112,6 +119,7 @@ class AudioRecorder {
   Future<void> _startNativeRecording({
     required String filePath,
     required AudioRecordCompleteCallback onComplete,
+    int? maxDurationMs,
   }) async {
     try {
       final result = await AudioRecorderPlatform.startRecordNative(
@@ -119,7 +127,7 @@ class AudioRecorder {
           filepath: filePath,
           enableAIDeNoise: false,
           minDurationMs: minDuration,
-          maxDurationMs: maxDuration,
+          maxDurationMs: maxDurationMs ?? maxDuration,
         ),
       );
 

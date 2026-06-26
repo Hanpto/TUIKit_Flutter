@@ -1,6 +1,7 @@
 import 'package:tencent_chat_uikit/tencent_chat_uikit.dart';
 import 'package:tuikit_atomic_x/base_component/utils/tui_event_bus.dart';
 import 'package:tencent_chat_uikit/src/contact_list/pages/add_friend.dart';
+import 'package:tencent_chat_uikit/src/message_list/listen/listen_playback_bar.dart';
 import 'package:flutter/material.dart' hide IconButton;
 
 class ChatSettingPage extends StatelessWidget {
@@ -248,54 +249,63 @@ class _ChatPageState extends State<ChatPage> {
               onClick: _onChatSettingsTap,
             ),
           ]),
-      body: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-          _messageInputKey.currentState?.collapseAllPanels();
-        },
-        behavior: HitTestBehavior.translucent,
-        child: Column(
-          children: [
-            MessageList(
-              conversationID: widget.conversation.conversationID,
-              locateMessage: widget.message,
-              onUserClick: (String userID) => _onUserClick(userID),
-              onUserLongPress: (String userID, String displayName) {
-                _messageInputKey.currentState?.insertMention(
-                  userID: userID,
-                  displayName: displayName,
-                );
-              },
-              onCallMessageClick: _onCallMessageClick,
-              onQuoteMessage: (MessageInfo message) {
-                _messageInputKey.currentState?.setQuotedMessage(message);
-              },
-              onMultiSelectStateChanged: (state) {
-                setState(() {
-                  _multiSelectState = state;
-                });
-              },
-              groupAtInfoList: widget.conversation.groupAtInfoList,
-              initialUnreadCount: widget.conversation.unreadCount,
-            ),
-            if (_multiSelectState != null && _multiSelectState!.isActive)
-              MultiSelectBottomBar(
-                selectedCount: _multiSelectState!.selectedCount,
-                onCancel: _multiSelectState!.onCancel,
-                onDelete: _multiSelectState!.onDelete,
-                onForward: () => _multiSelectState!.onForward(context),
-              )
-            else
-              MessageInput(
-                key: _messageInputKey,
-                conversationID: widget.conversation.conversationID,
-                config: const ChatMessageInputConfig(
-                  isShowAudioCall: true,
-                  isShowVideoCall: true,
+      body: Stack(
+        children: [
+          GestureDetector(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+              _messageInputKey.currentState?.collapseAllPanels();
+            },
+            behavior: HitTestBehavior.translucent,
+            child: Column(
+              children: [
+                MessageList(
+                  conversationID: widget.conversation.conversationID,
+                  locateMessage: widget.message,
+                  onUserClick: (String userID) => _onUserClick(userID),
+                  onUserLongPress: (String userID, String displayName) {
+                    _messageInputKey.currentState?.insertMention(
+                      userID: userID,
+                      displayName: displayName,
+                    );
+                  },
+                  onCallMessageClick: _onCallMessageClick,
+                  onQuoteMessage: (MessageInfo message) {
+                    _messageInputKey.currentState?.setQuotedMessage(message);
+                  },
+                  onMultiSelectStateChanged: (state) {
+                    setState(() {
+                      _multiSelectState = state;
+                    });
+                  },
+                  groupAtInfoList: widget.conversation.groupAtInfoList,
+                  initialUnreadCount: widget.conversation.unreadCount,
                 ),
-              ),
-          ],
-        ),
+                if (_multiSelectState != null && _multiSelectState!.isActive)
+                  MultiSelectBottomBar(
+                    selectedCount: _multiSelectState!.selectedCount,
+                    onCancel: _multiSelectState!.onCancel,
+                    onDelete: _multiSelectState!.onDelete,
+                    onForward: () => _multiSelectState!.onForward(context),
+                  )
+                else
+                  MessageInput(
+                    key: _messageInputKey,
+                    conversationID: widget.conversation.conversationID,
+                    config: const ChatMessageInputConfig(
+                      isShowAudioCall: true,
+                      isShowVideoCall: true,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // Floating "listen from here" status bar — hovers mid-right over the
+          // message list (only visible while listening). Fills the area so the
+          // expanded state can show a full-screen tap-to-collapse barrier;
+          // collapsed/inactive states don't intercept taps on the chat.
+          const Positioned.fill(child: ListenPlaybackBar()),
+        ],
       ),
     );
   }

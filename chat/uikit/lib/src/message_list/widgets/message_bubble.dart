@@ -11,6 +11,8 @@ import 'package:tencent_chat_uikit/src/message_list/utils/calling_message_data_p
 import 'package:tencent_chat_uikit/src/message_list/utils/recent_emoji_manager.dart';
 import 'package:tencent_chat_uikit/src/message_list/utils/translation_display_manager.dart';
 import 'package:tencent_chat_uikit/src/message_list/utils/translation_text_parser.dart';
+import 'package:tencent_chat_uikit/src/common/language/index.dart';
+import 'package:tencent_chat_uikit/src/message_list/listen/listen_from_here_controller.dart';
 import 'package:tencent_chat_uikit/src/message_list/widgets/forward/forward_service.dart';
 import 'package:tencent_chat_uikit/src/message_list/widgets/message_read_receipt_view.dart';
 
@@ -804,6 +806,8 @@ class _MessageBubbleState extends State<MessageBubble> with SingleTickerProvider
     if (_shouldShowTranslateMenuItem()) {
       items.add(MessageMenuItem(
         title: atomicLocal.translate,
+        assetName: 'chat_assets/icon/translate.svg',
+        package: 'tencent_chat_uikit',
         icon: Icons.translate,
         onTap: () => _handleTranslateText(),
       ));
@@ -1061,6 +1065,8 @@ class _MessageBubbleState extends State<MessageBubble> with SingleTickerProvider
       if (isSentSuccess && isNotViolation) {
         items.add(MessageMenuItem(
           title: atomicLocal.quote,
+          assetName: 'chat_assets/icon/quote.svg',
+          package: 'tencent_chat_uikit',
           icon: Icons.format_quote,
           onTap: () => _menuCallbacks.onQuoteMessage(widget.message),
         ));
@@ -1090,6 +1096,8 @@ class _MessageBubbleState extends State<MessageBubble> with SingleTickerProvider
       if (isWithin2Minutes && isSentSuccess && isNotViolation) {
         items.add(MessageMenuItem(
           title: atomicLocal.recall,
+          assetName: 'chat_assets/icon/revoke.svg',
+          package: 'tencent_chat_uikit',
           icon: Icons.undo,
           onTap: () => _menuCallbacks.onRecallMessage(widget.message),
         ));
@@ -1107,6 +1115,21 @@ class _MessageBubbleState extends State<MessageBubble> with SingleTickerProvider
         onTap: () => _menuCallbacks.onDeleteMessage(widget.message),
       ));
     }
+
+    // Listen-from-here button (all message types).
+    items.add(MessageMenuItem(
+      title: ChatLocalizations.of(context)!.listenFromHere,
+      assetName: 'chat_assets/icon/listen_from_here.svg',
+      package: 'tencent_chat_uikit',
+      icon: Icons.headset_outlined,
+      onTap: () {
+        ListenFromHereController.instance.start(
+          messages: widget.messageListStore.state.messageList.value,
+          fromMessageId: widget.message.msgID,
+          l: ChatLocalizations.of(context)!,
+        );
+      },
+    ));
 
     // Add custom actions
     for (final customAction in widget.customActions) {

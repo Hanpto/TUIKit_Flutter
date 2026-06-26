@@ -1,5 +1,6 @@
 import 'package:tuikit_atomic_x/base_component/base_component.dart';
 import 'package:atomic_x_core/atomicxcore.dart';
+import 'package:tencent_chat_uikit/src/common/utils/uikit_util.dart';
 import 'package:flutter/material.dart';
 
 import '../../user_picker/user_picker.dart';
@@ -43,7 +44,7 @@ class _GroupAddMuteMemberState extends State<GroupAddMuteMember> {
     _dataSource = selectableMembers.map((member) {
       return UserPickerData(
         key: member.userID,
-        label: ChatUtils.memberDisplayName(member),
+        label: UIKitUtil.memberDisplayName(member),
         avatarURL: member.avatarURL,
         isPreSelected: member.isMuted,
       );

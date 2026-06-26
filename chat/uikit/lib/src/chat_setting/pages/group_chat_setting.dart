@@ -1,5 +1,6 @@
 import 'package:tuikit_atomic_x/base_component/base_component.dart';
 import 'package:atomic_x_core/atomicxcore.dart';
+import 'package:tencent_chat_uikit/src/common/utils/uikit_util.dart';
 import 'package:flutter/material.dart' hide AlertDialog;
 import 'package:flutter_svg/svg.dart';
 
@@ -519,13 +520,13 @@ class _GroupChatSettingState extends State<GroupChatSetting> {
           children: [
             Avatar.image(
               url: member.avatarURL,
-              name: ChatUtils.memberDisplayName(member),
+              name: UIKitUtil.memberDisplayName(member),
               size: AvatarSize.m,
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                ChatUtils.memberDisplayName(member),
+                UIKitUtil.memberDisplayName(member),
                 style: FontScheme.caption1Regular.copyWith(color: colorsTheme.textColorPrimary),
               ),
             ),

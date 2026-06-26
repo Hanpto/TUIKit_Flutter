@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:uikit_next/login_page.dart';
 
 import 'profile_page.dart';
+import 'voice_message_settings_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -471,6 +472,24 @@ class _SettingsPageState extends State<SettingsPage> {
                         AppBuilder.getInstance().translateConfig.targetLanguage,
                       ),
                       onTap: () => _showTranslateLanguageSelector(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                SettingWidgets.buildSettingGroup(
+                  context: context,
+                  children: [
+                    SettingWidgets.buildNavigationRow(
+                      context: context,
+                      title: ChatLocalizations.of(context)!.voiceMessageSettings,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const VoiceMessageSettingsPage(),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

@@ -100,6 +100,7 @@ class _MyAppState extends State<MyApp> {
             navigatorObservers: [TUICallKit.navigatorObserver],
             localizationsDelegates: const [
               AtomicLocalizations.delegate,
+              ChatLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,

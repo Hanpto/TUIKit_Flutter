@@ -1,5 +1,6 @@
 import 'package:tuikit_atomic_x/base_component/base_component.dart';
 import 'package:atomic_x_core/atomicxcore.dart';
+import 'package:tencent_chat_uikit/src/common/utils/uikit_util.dart';
 import 'package:flutter/cupertino.dart';
 
 
@@ -97,42 +98,42 @@ class MessageUtil {
 
   static String getJoinGroupDisplayString(JoinGroup systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    return localizations.groupMemberJoined(ChatUtils.memberDisplayName(systemMessage.joinMember));
+    return localizations.groupMemberJoined(UIKitUtil.memberDisplayName(systemMessage.joinMember));
   }
 
   static String getInviteToGroupDisplayString(InviteToGroup systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    final inviteesShowName = systemMessage.invitees.map((m) => ChatUtils.memberDisplayName(m)).join('、');
-    return localizations.groupMemberInvited(ChatUtils.memberDisplayName(systemMessage.inviter), inviteesShowName);
+    final inviteesShowName = systemMessage.invitees.map((m) => UIKitUtil.memberDisplayName(m)).join('、');
+    return localizations.groupMemberInvited(UIKitUtil.memberDisplayName(systemMessage.inviter), inviteesShowName);
   }
 
   static String getQuitGroupDisplayString(QuitGroup systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    return localizations.groupMemberQuit(ChatUtils.memberDisplayName(systemMessage.quitMember));
+    return localizations.groupMemberQuit(UIKitUtil.memberDisplayName(systemMessage.quitMember));
   }
 
   static String getKickedFromGroupDisplayString(KickedFromGroup systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    final kickedShowName = systemMessage.kickedMembers.map((m) => ChatUtils.memberDisplayName(m)).join('、');
-    return localizations.groupMemberKicked(ChatUtils.memberDisplayName(systemMessage.opUser), kickedShowName);
+    final kickedShowName = systemMessage.kickedMembers.map((m) => UIKitUtil.memberDisplayName(m)).join('、');
+    return localizations.groupMemberKicked(UIKitUtil.memberDisplayName(systemMessage.opUser), kickedShowName);
   }
 
   static String getSetGroupAdminDisplayString(SetGroupAdmin systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    final showName = systemMessage.setAdminMembers.map((m) => ChatUtils.memberDisplayName(m)).join('、');
+    final showName = systemMessage.setAdminMembers.map((m) => UIKitUtil.memberDisplayName(m)).join('、');
     return localizations.groupAdminSet(showName);
   }
 
   static String getCancelGroupAdminDisplayString(CancelGroupAdmin systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    final showName = systemMessage.cancelAdminMembers.map((m) => ChatUtils.memberDisplayName(m)).join('、');
+    final showName = systemMessage.cancelAdminMembers.map((m) => UIKitUtil.memberDisplayName(m)).join('、');
     return localizations.groupAdminCancelled(showName);
   }
 
   static String getMuteGroupMemberDisplayString(MuteGroupMember systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
     int muteTime = systemMessage.muteTime;
-    String memberShowName = systemMessage.mutedGroupMembers.map((m) => ChatUtils.memberDisplayName(m)).join('、');
+    String memberShowName = systemMessage.mutedGroupMembers.map((m) => UIKitUtil.memberDisplayName(m)).join('、');
     bool isSelfMuted = systemMessage.isSelfMuted;
     String actualShowName = isSelfMuted ? localizations.you : memberShowName;
 
@@ -148,28 +149,28 @@ class MessageUtil {
 
   static String getPinGroupMessageDisplayString(PinGroupMessage systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    return localizations.groupMessagePinned(ChatUtils.memberDisplayName(systemMessage.opUser));
+    return localizations.groupMessagePinned(UIKitUtil.memberDisplayName(systemMessage.opUser));
   }
 
   static String getUnpinGroupMessageDisplayString(UnpinGroupMessage systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    return localizations.groupMessageUnpinned(ChatUtils.memberDisplayName(systemMessage.opUser));
+    return localizations.groupMessageUnpinned(UIKitUtil.memberDisplayName(systemMessage.opUser));
   }
 
   static String getChangeGroupNameDisplayString(ChangeGroupName systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    return '${ChatUtils.memberDisplayName(systemMessage.opUser)} ${localizations.groupNameChangedTo} ${systemMessage.groupName}';
+    return '${UIKitUtil.memberDisplayName(systemMessage.opUser)} ${localizations.groupNameChangedTo} ${systemMessage.groupName}';
   }
 
   static String getChangeGroupAvatarDisplayString(ChangeGroupAvatar systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    return '${ChatUtils.memberDisplayName(systemMessage.opUser)} ${localizations.groupAvatarChanged}';
+    return '${UIKitUtil.memberDisplayName(systemMessage.opUser)} ${localizations.groupAvatarChanged}';
   }
 
   static String getChangeGroupNotificationDisplayString(
       ChangeGroupNotification systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    String operator = ChatUtils.memberDisplayName(systemMessage.opUser);
+    String operator = UIKitUtil.memberDisplayName(systemMessage.opUser);
     String groupNotice = systemMessage.groupNotification;
     if (groupNotice.isNotEmpty) {
       return '$operator ${localizations.groupNoticeChangedTo} $groupNotice';
@@ -181,7 +182,7 @@ class MessageUtil {
   static String getChangeGroupIntroductionDisplayString(
       ChangeGroupIntroduction systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    String operator = ChatUtils.memberDisplayName(systemMessage.opUser);
+    String operator = UIKitUtil.memberDisplayName(systemMessage.opUser);
     String groupIntroduction = systemMessage.groupIntroduction;
     if (groupIntroduction.isNotEmpty) {
       return '$operator ${localizations.groupIntroChangedTo} $groupIntroduction';
@@ -192,13 +193,13 @@ class MessageUtil {
 
   static String getChangeGroupOwnerDisplayString(ChangeGroupOwner systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    return '${ChatUtils.memberDisplayName(systemMessage.opUser)} ${localizations.groupOwnerTransferredTo} ${systemMessage.groupOwner}';
+    return '${UIKitUtil.memberDisplayName(systemMessage.opUser)} ${localizations.groupOwnerTransferredTo} ${systemMessage.groupOwner}';
   }
 
   static String getChangeGroupMuteAllDisplayString(
       ChangeGroupMuteAll systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    String operator = ChatUtils.memberDisplayName(systemMessage.opUser);
+    String operator = UIKitUtil.memberDisplayName(systemMessage.opUser);
     bool isMuteAll = systemMessage.isMuteAll;
     return '$operator ${isMuteAll ? localizations.groupMuteAllEnabled : localizations.groupMuteAllDisabled}';
   }
@@ -206,7 +207,7 @@ class MessageUtil {
   static String getChangeJoinGroupApprovalDisplayString(
       ChangeJoinGroupApproval systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    String operator = ChatUtils.memberDisplayName(systemMessage.opUser);
+    String operator = UIKitUtil.memberDisplayName(systemMessage.opUser);
     String approvalDesc;
     switch (systemMessage.groupJoinOption) {
       case GroupJoinOption.forbid:
@@ -225,7 +226,7 @@ class MessageUtil {
   static String getChangeInviteToGroupApprovalDisplayString(
       ChangeInviteToGroupApproval systemMessage, BuildContext context) {
     AtomicLocalizations localizations = AtomicLocalizations.of(context);
-    String operator = ChatUtils.memberDisplayName(systemMessage.opUser);
+    String operator = UIKitUtil.memberDisplayName(systemMessage.opUser);
     String approvalDesc;
     switch (systemMessage.groupInviteOption) {
       case GroupInviteOption.forbid:

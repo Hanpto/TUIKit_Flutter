@@ -2,6 +2,11 @@ library tencent_chat_uikit;
 
 export 'package:tuikit_atomic_x/atomicx.dart';
 
+export 'src/common/language/index.dart';
+export 'src/ai/ai_media_process_manager.dart';
+export 'src/ai/tts/tts_playback_helper.dart';
+export 'src/ai/tts/voice_item.dart';
+export 'src/ai/tts/voice_message_config.dart';
 export 'src/audio_player/audio_player.dart';
 export 'src/audio_recoder/audio_recorder.dart';
 export 'src/chat_setting/chat_setting.dart';

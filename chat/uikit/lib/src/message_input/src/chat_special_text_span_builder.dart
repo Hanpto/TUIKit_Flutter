@@ -1,4 +1,5 @@
 import 'package:tuikit_atomic_x/base_component/base_component.dart';
+import 'package:tencent_chat_uikit/src/common/utils/uikit_util.dart';
 import 'package:tencent_chat_uikit/src/emoji_picker/emoji_picker_data.dart';
 import 'package:tencent_chat_uikit/src/third_party/extended_text/extended_text.dart';
 import 'package:flutter/gestures.dart';
@@ -87,7 +88,7 @@ class HttpText extends SpecialText {
   @override
   InlineSpan finishText() {
     final String text = getContent();
-    final isValidUrl = ChatUtils.urlReg.hasMatch(text);
+    final isValidUrl = UIKitUtil.urlReg.hasMatch(text);
     return isValidUrl
         ? SpecialTextSpan(
             text: text,
