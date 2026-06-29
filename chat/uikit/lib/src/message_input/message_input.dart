@@ -9,6 +9,7 @@ import 'package:flutter/material.dart' hide IconButton;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:tuikit_atomic_x/album_picker/album_picker.dart';
+import 'package:tencent_chat_uikit/src/common/utils/uikit_util.dart';
 import 'package:tencent_chat_uikit/src/message_input/album_picker_media_send_manager.dart';
 import 'package:tencent_chat_uikit/src/message_input/utils/image_size_reader.dart';
 import 'package:tencent_chat_uikit/src/audio_recoder/audio_recorder.dart';
@@ -986,6 +987,7 @@ class MessageInputState extends State<MessageInput> with TickerProviderStateMixi
         "timeout": 30,
       };
     TUIEventBus.shared.publish("call.startCall", null, params);
+    UIKitUtil.reportChatInvokeCall();
   }
 
   void _onTakeVideo() async {
