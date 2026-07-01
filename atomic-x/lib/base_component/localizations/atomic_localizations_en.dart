@@ -1496,6 +1496,9 @@ class AtomicLocalizationsEn extends AtomicLocalizations {
   String get callOtherPartyNoResponse => 'The other party did not respond';
 
   @override
+  String get callOtherPartyCanceled => 'Other party canceled the call';
+
+  @override
   String get callRequestDeclined => 'rejected call';
 
   @override

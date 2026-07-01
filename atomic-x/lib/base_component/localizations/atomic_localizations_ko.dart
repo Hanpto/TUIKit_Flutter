@@ -1471,6 +1471,9 @@ class AtomicLocalizationsKo extends AtomicLocalizations {
   String get callOtherPartyNoResponse => '상대방이 응답하지 않았습니다';
 
   @override
+  String get callOtherPartyCanceled => '상대방이 통화를 취소했습니다';
+
+  @override
   String get callRequestDeclined => '통화를 거절했습니다';
 
   @override

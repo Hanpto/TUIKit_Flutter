@@ -1,6 +1,7 @@
 import 'package:atomic_x_core/atomicxcore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:tencent_calls_uikit/src/manager/call_manager.dart';
 import 'package:tencent_cloud_chat_sdk/tencent_im_sdk_plugin.dart';
 import 'package:rtc_room_engine/rtc_room_engine.dart';
 import 'package:tuikit_atomic_x/base_component/localizations/atomic_localizations.dart';
@@ -78,7 +79,7 @@ class _JoinInGroupWidgetState extends State<JoinInGroupWidget> {
                         const Padding(padding: EdgeInsets.only(left: 15)),
                         Text(
                             '${widget.userIDs.length} ${AtomicLocalizations.of(context).callPersonIsOnTheCall}',
-                            textScaleFactor: 1.0,
+                            textScaler: TextScaler.noScaling,
                         ),
                         const Spacer(),
                         Image.asset(
@@ -153,7 +154,7 @@ class _JoinInGroupWidgetState extends State<JoinInGroupWidget> {
                                       alignment: Alignment.center,
                                       child: Text(
                                         AtomicLocalizations.of(context).callJoinIn,
-                                        textScaleFactor: 1.0,
+                                        textScaler: TextScaler.noScaling,
                                         style: const TextStyle(
                                             fontSize: 16, fontWeight: FontWeight.w500),
                                       ),
@@ -184,7 +185,7 @@ class _JoinInGroupWidgetState extends State<JoinInGroupWidget> {
   }
 
   _joinInGroupCallAction() {
-    CallStore.shared.join(widget.callId!);
+    CallManager.instance.join(widget.callId!);
   }
 
   _updateUserAvatars() async {

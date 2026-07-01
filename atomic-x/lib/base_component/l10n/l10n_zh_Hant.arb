@@ -523,6 +523,7 @@
     "callOtherPartyDeclinedCallRequest": "對方拒絕了通話請求",
     "callOtherPartyBusy": "對方忙",
     "callOtherPartyNoResponse": "對方未響應",
+    "callOtherPartyCanceled": "對方已取消通話",
     "callRequestDeclined": "拒絕了通話請求",
     "callEndedTheCall": "結束了通話",
     "callGoToSettings": "去設置",

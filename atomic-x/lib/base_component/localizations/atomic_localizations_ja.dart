@@ -1472,6 +1472,9 @@ class AtomicLocalizationsJa extends AtomicLocalizations {
   String get callOtherPartyNoResponse => '呼び出しタイムアウト';
 
   @override
+  String get callOtherPartyCanceled => '相手が通話をキャンセルしました';
+
+  @override
   String get callRequestDeclined => 'は通話を拒否しました';
 
   @override

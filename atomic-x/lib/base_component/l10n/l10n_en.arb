@@ -523,6 +523,7 @@
     "callOtherPartyDeclinedCallRequest": "Call rejected by other party",
     "callOtherPartyBusy": "Line Busy",
     "callOtherPartyNoResponse": "The other party did not respond",
+    "callOtherPartyCanceled": "Other party canceled the call",
     "callRequestDeclined": "rejected call",
     "callEndedTheCall": "end the call",
     "callGoToSettings": "Go to settings",

@@ -1469,6 +1469,8 @@ class AtomicLocalizationsZh extends AtomicLocalizations {
   String get callOtherPartyNoResponse => '对方未响应';
 
   @override
+  String get callOtherPartyCanceled => '对方已取消通话';
+  @override
   String get callRequestDeclined => '拒绝了通话请求';
 
   @override
@@ -3003,6 +3005,8 @@ class AtomicLocalizationsZhHans extends AtomicLocalizationsZh {
   String get callOtherPartyNoResponse => '对方未响应';
 
   @override
+  String get callOtherPartyCanceled => '对方已取消通话';
+  @override
   String get callRequestDeclined => '拒绝了通话请求';
 
   @override
@@ -4535,6 +4539,9 @@ class AtomicLocalizationsZhHant extends AtomicLocalizationsZh {
 
   @override
   String get callOtherPartyNoResponse => '對方未響應';
+
+  @override
+  String get callOtherPartyCanceled => '對方已取消通話';
 
   @override
   String get callRequestDeclined => '拒絕了通話請求';

@@ -524,6 +524,7 @@
     "callOtherPartyDeclinedCallRequest": "상대방이 통화를 거절했습니다",
     "callOtherPartyBusy": "상대방이 통화 중입니다",
     "callOtherPartyNoResponse": "상대방이 응답하지 않았습니다",
+    "callOtherPartyCanceled": "상대방이 통화를 취소했습니다",
     "callRequestDeclined": "통화를 거절했습니다",
     "callEndedTheCall": "통화를 종료했습니다",
     "callGoToSettings": "설정으로 이동",

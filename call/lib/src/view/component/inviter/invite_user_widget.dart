@@ -8,7 +8,7 @@ import 'package:rtc_room_engine/rtc_room_engine.dart';
 import 'package:tencent_calls_uikit/src/common/constants.dart';
 import 'package:tuikit_atomic_x/base_component/localizations/atomic_localizations.dart';
 import 'package:tencent_calls_uikit/src/common/utils/string_stream.dart';
-import 'package:tencent_calls_uikit/src/view/call_page_manager.dart';
+import 'package:tencent_calls_uikit/src/manager/call_page_router.dart';
 
 class InviteUserWidget extends StatefulWidget {
   final InviteUserCallbacks? callbacks;
@@ -37,7 +37,7 @@ class _InviteUserWidgetState extends State<InviteUserWidget> {
           title: Center(
             child: Text(
               l10n.callInviteMembers,
-              textScaleFactor: 1.0,
+              textScaler: TextScaler.noScaling,
             ),
           ),
           leading: IconButton(
@@ -95,7 +95,7 @@ class _InviteUserWidgetState extends State<InviteUserWidget> {
                     const Padding(padding: EdgeInsets.symmetric(horizontal: 5)),
                     Text(
                       _getMemberDisPlayName(_groupMemberList[index]),
-                      textScaleFactor: 1.0,
+                      textScaler: TextScaler.noScaling,
                       style: TextStyle(
                         color: isDefaultSelected ? Colors.grey : Colors.black, 
                         fontSize: 18

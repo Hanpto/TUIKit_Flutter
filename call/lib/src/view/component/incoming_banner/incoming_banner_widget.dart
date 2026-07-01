@@ -1,9 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:atomic_x_core/atomicxcore.dart';
-import 'package:rtc_room_engine/rtc_room_engine.dart';
-import 'package:tencent_cloud_chat_sdk/tencent_im_sdk_plugin.dart';
-import 'package:tencent_calls_uikit/src/common/constants.dart';
+import 'package:tencent_calls_uikit/src/manager/call_manager.dart';
+import 'package:tencent_calls_uikit/src/manager/call_page_router.dart';
+import 'package:tencent_calls_uikit/src/tui_call_kit_impl.dart';
 import 'package:tuikit_atomic_x/base_component/localizations/atomic_localizations.dart';
 
 class IncomingBannerWidget extends StatefulWidget {
@@ -17,24 +16,68 @@ class IncomingBannerWidget extends StatefulWidget {
 }
 
 class _IncomingBannerWidgetState extends State<IncomingBannerWidget> {
+  CallInfo _activeCall = CallStore.shared.state.activeCall.value;
+
+  String _inviterAvatarURL = '';
+  String _inviterName = '';
 
   @override
   void initState() {
     super.initState();
+    CallStore.shared.state.activeCall.addListener(_onActiveCallChanged);
+    CallStore.shared.state.allParticipants.addListener(_onAllParticipantsChanged);
+    _updateInviterInfo(CallStore.shared.state.allParticipants.value);
   }
 
   @override
   void dispose() {
+    CallStore.shared.state.activeCall.removeListener(_onActiveCallChanged);
+    CallStore.shared.state.allParticipants.removeListener(_onAllParticipantsChanged);
     super.dispose();
   }
 
+  void _onActiveCallChanged() {
+    final newValue = CallStore.shared.state.activeCall.value;
+    if (newValue.callId.isEmpty) return;
+    setState(() => _activeCall = newValue);
+  }
+
+  void _onAllParticipantsChanged() {
+    _updateInviterInfo(CallStore.shared.state.allParticipants.value);
+  }
+
+  void _updateInviterInfo(List<CallParticipantInfo> participants) {
+    final inviterId = CallStore.shared.state.activeCall.value.inviterId;
+    for (var participant in participants) {
+      if (participant.id == inviterId) {
+        final name = participant.remark.isNotEmpty
+            ? participant.remark
+            : participant.name.isNotEmpty
+                ? participant.name
+                : participant.id;
+        final avatar = participant.avatarURL;
+        bool changed = false;
+        if (name.isNotEmpty && name != _inviterName) {
+          _inviterName = name;
+          changed = true;
+        }
+        if (avatar.isNotEmpty && avatar != _inviterAvatarURL) {
+          _inviterAvatarURL = avatar;
+          changed = true;
+        }
+        if (changed) setState(() {});
+        break;
+      }
+    }
+  }
+
   Future<void> _onAccept() async {
-    await CallStore.shared.accept();
+    await CallManager.instance.accept();
     widget.onShowCalling?.call();
   }
 
   Future<void> _onReject() async {
-    await CallStore.shared.reject();
+    await CallManager.instance.reject();
     widget.onCloseAll?.call();
   }
   
@@ -44,15 +87,22 @@ class _IncomingBannerWidgetState extends State<IncomingBannerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final activeCall = CallStore.shared.state.activeCall.value;
-    if (activeCall.callId.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    return ValueListenableBuilder<EndedHintState?>(
+      valueListenable: TUICallKitImpl.instance.pageRouter.endedHintState,
+      builder: (context, ended, _) {
+        if (ended == null && _activeCall.callId.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return _buildBannerContent(context, ended);
+      },
+    );
+  }
 
+  Widget _buildBannerContent(BuildContext context, EndedHintState? ended) {
     return Material(
       color: Colors.transparent,
       child: GestureDetector(
-        onTap: _onTapBanner,
+        onTap: ended == null ? _onTapBanner : null,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
           decoration: BoxDecoration(
@@ -71,9 +121,9 @@ class _IncomingBannerWidgetState extends State<IncomingBannerWidget> {
             children: [
               _getInviterAvatarWidget(),
               const SizedBox(width: 12),
-              _getInviterInfoWidget(),
+              _getInviterInfoWidget(ended),
               const SizedBox(width: 12),
-              _getActionButtonWidget()
+              if (ended == null) _getActionButtonWidget(),
             ],
           ),
         ),
@@ -81,92 +131,77 @@ class _IncomingBannerWidgetState extends State<IncomingBannerWidget> {
     );
   }
 
-  _getInviterAvatarWidget() {
-    return ValueListenableBuilder(valueListenable: CallStore.shared.state.allParticipants,
-        builder: (context, allParticipants, child) {
-          final inviterId = CallStore.shared.state.activeCall.value.inviterId;
-          final inviter = allParticipants.firstWhere(
-                (participant) => participant.id == inviterId,
-            orElse: () => CallStore.shared.state.selfInfo.value,
-          );
-
-          return Container(
-            width: 50,
-            height: 50,
-            clipBehavior: Clip.hardEdge,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              color: const Color(0xFFEFEFEF),
-            ),
-            child: Image(
-              image: NetworkImage(inviter.avatarURL),
+  Widget _getInviterAvatarWidget() {
+    return Container(
+      width: 50,
+      height: 50,
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4),
+        color: const Color(0xFFEFEFEF),
+      ),
+      child: _inviterAvatarURL.isNotEmpty
+          ? Image(
+              image: NetworkImage(_inviterAvatarURL),
               fit: BoxFit.cover,
               errorBuilder: (ctx, err, stack) => Image.asset(
                 'assets/images/user_icon.png',
                 package: 'tencent_calls_uikit',
               ),
+            )
+          : Image.asset(
+              'assets/images/user_icon.png',
+              package: 'tencent_calls_uikit',
             ),
-          );
-        });
+    );
   }
 
-  _getInviterInfoWidget() {
-    return ValueListenableBuilder(valueListenable: CallStore.shared.state.allParticipants,
-        builder: (context, allParticipants, child) {
-          final inviterId = CallStore.shared.state.activeCall.value.inviterId;
-          final inviter = allParticipants.firstWhere(
-                (participant) => participant.id == inviterId,
-            orElse: () => CallStore.shared.state.selfInfo.value,
-          );
+  Widget _getInviterInfoWidget(EndedHintState? ended) {
+    var invitationInfo = '';
+    if (ended != null) {
+      invitationInfo = ended.text;
+    } else {
+      final l10n = AtomicLocalizations.of(context);
+      if (_activeCall.inviteeIds.length >= 2) {
+        invitationInfo = l10n.callInvitedToGroupCall;
+      } else if (_activeCall.mediaType == CallMediaType.audio) {
+        invitationInfo = l10n.callInvitedToAudioCall;
+      } else if (_activeCall.mediaType == CallMediaType.video) {
+        invitationInfo = l10n.callInvitedToVideoCall;
+      }
+    }
 
-          var inviterName = inviter.remark.isNotEmpty ?  inviter.remark : inviter.name;
-          if (inviterName.isEmpty) {
-            inviterName = inviter.id;
-          }
-
-          var invitationInfo = '';
-          final l10n = AtomicLocalizations.of(context);
-          if (CallStore.shared.state.activeCall.value.inviteeIds.length >= 2) {
-            invitationInfo = l10n.callInvitedToGroupCall;
-          } else if (CallStore.shared.state.activeCall.value.mediaType == CallMediaType.audio) {
-            invitationInfo = l10n.callInvitedToAudioCall;
-          } else if (CallStore.shared.state.activeCall.value.mediaType == CallMediaType.video) {
-            invitationInfo = l10n.callInvitedToVideoCall;
-          }
-
-          return Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  inviterName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  invitationInfo,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _inviterName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
-          );
-    });
-
+          ),
+          const SizedBox(height: 2),
+          Text(
+            invitationInfo,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  _getActionButtonWidget() {
+  Widget _getActionButtonWidget() {
     return Row(
       children: [
         GestureDetector(
@@ -208,5 +243,3 @@ class _IncomingBannerWidgetState extends State<IncomingBannerWidget> {
     );
   }
 }
-
-

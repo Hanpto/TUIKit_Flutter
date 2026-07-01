@@ -523,6 +523,7 @@
     "callOtherPartyDeclinedCallRequest": "رفض الطرف الآخر المكالمة",
     "callOtherPartyBusy": "الطرف الآخر مشغول",
     "callOtherPartyNoResponse": "لم يستجب الطرف الآخر",
+    "callOtherPartyCanceled": "ألغى الطرف الآخر المكالمة",
     "callRequestDeclined": "رفض المكالمة",
     "callEndedTheCall": "أنهى المكالمة",
     "callGoToSettings": "الذهاب إلى الإعدادات",

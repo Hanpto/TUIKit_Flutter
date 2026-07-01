@@ -523,6 +523,7 @@
     "callOtherPartyDeclinedCallRequest": "相手による通話拒否",
     "callOtherPartyBusy": "相手が通話中です",
     "callOtherPartyNoResponse": "呼び出しタイムアウト",
+    "callOtherPartyCanceled": "相手が通話をキャンセルしました",
     "callRequestDeclined": "は通話を拒否しました",
     "callEndedTheCall": "通話終了",
     "callGoToSettings": "設定に移動",

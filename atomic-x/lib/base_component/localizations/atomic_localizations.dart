@@ -2932,6 +2932,12 @@ abstract class AtomicLocalizations {
   /// **'The other party did not respond'**
   String get callOtherPartyNoResponse;
 
+  /// No description provided for @callOtherPartyCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Other party canceled the call'**
+  String get callOtherPartyCanceled;
+
   /// No description provided for @callRequestDeclined.
   ///
   /// In en, this message translates to:

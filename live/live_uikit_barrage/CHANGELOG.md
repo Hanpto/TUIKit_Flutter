@@ -1,5 +1,9 @@
 # LiveUIKitBarrage
 
+## 3.0.2
+
+- Removed unused dependencies.
+
 ## 3.0.1
 
 - Default internationalization language set to English.

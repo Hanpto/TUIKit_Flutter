@@ -1,3 +1,14 @@
+## Version 4.1.1
+### Dependency Description
+- Upgrade tuikit_atomic_x to ^4.1.1.
+
+## Version 4.1.0
+### Dependency Description
+- Upgrade tuikit_atomic_x to 4.1.0.
+### Bugfix
+- Optimized the routing scheme for the call page to support displaying other overlays.
+- Optimize the Text Internationalization Strategy.
+
 ## Version 4.0.8
 ### Dependency Description
 - Upgrade tuikit_atomic_x to 4.0.0.
